@@ -36,12 +36,12 @@ const Index = () => {
               <Bot className="h-24 w-24 text-blue-600 mx-auto mb-6 animate-pulse" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-6">
-              Ace Your Polytechnic Exams with{" "}
+              Master Polytechnic Subjects with{" "}
               <span className="text-blue-600">PolyPros!</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your personal AI chatbot for SBTET repeated questions, answers, and study help.
-              Designed exclusively for Andhra Pradesh polytechnic students.
+              Your intelligent AI study assistant for all polytechnic subjects. Get instant answers, 
+              explanations, and study help for Engineering, Computer Science, Mathematics, and more.
             </p>
             <Button
               onClick={() => setShowChatbot(true)}
@@ -49,7 +49,7 @@ const Index = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
               <MessageCircle className="mr-2 h-5 w-5" />
-              Start Chatting Now
+              Start Learning Now
             </Button>
           </div>
         </div>
@@ -70,26 +70,26 @@ const Index = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <FeatureCard
               icon={<BookOpen className="h-12 w-12 text-blue-600" />}
-              title="Get Repeated Questions"
-              description="Access frequently asked questions from previous SBTET exams"
+              title="Subject Expertise"
+              description="Get help with all polytechnic subjects from Mathematics to Engineering"
               delay={0}
             />
             <FeatureCard
               icon={<MessageCircle className="h-12 w-12 text-blue-600" />}
-              title="Ask for Answers"
-              description="Get instant answers to your polytechnic study questions"
+              title="Instant Answers"
+              description="Ask questions and get detailed explanations instantly"
               delay={100}
             />
             <FeatureCard
               icon={<Clock className="h-12 w-12 text-blue-600" />}
-              title="24/7 Student Support"
+              title="24/7 Study Support"
               description="Study anytime, anywhere with our AI-powered assistant"
               delay={200}
             />
             <FeatureCard
               icon={<Users className="h-12 w-12 text-blue-600" />}
-              title="Made for SBTET"
-              description="Specifically designed for Andhra Pradesh polytechnic curriculum"
+              title="Made for Students"
+              description="Specifically designed for polytechnic curriculum and students"
               delay={300}
             />
           </div>
@@ -103,7 +103,7 @@ const Index = () => {
             Ready to Transform Your Study Experience?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join thousands of polytechnic students who are already acing their exams with PolyPros
+            Join thousands of polytechnic students who are already excelling with PolyPros
           </p>
           <Button
             onClick={() => setShowChatbot(true)}

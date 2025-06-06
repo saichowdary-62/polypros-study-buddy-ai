@@ -21,12 +21,49 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your AI study buddy for SBTET polytechnic exams. How can I help you today?",
+      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me questions or request answers related to any polytechnic topic - from Engineering Mathematics to Computer Science, Electronics, Mechanical, Civil, and more. How can I help you today?",
       isBot: true,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const generateBotResponse = (userMessage: string) => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Simple keyword-based responses for polytechnic subjects
+    if (lowerMessage.includes("mathematics") || lowerMessage.includes("math")) {
+      return "I can help with Engineering Mathematics topics like calculus, differential equations, linear algebra, and statistics. What specific math topic would you like to explore?";
+    }
+    
+    if (lowerMessage.includes("computer") || lowerMessage.includes("programming") || lowerMessage.includes("coding")) {
+      return "Great! I can assist with Computer Science topics including programming languages (C, C++, Java, Python), data structures, algorithms, database management, and web development. What would you like to know?";
+    }
+    
+    if (lowerMessage.includes("electronics") || lowerMessage.includes("circuit")) {
+      return "I can help with Electronics Engineering topics like digital circuits, analog circuits, microprocessors, communication systems, and electronic devices. What specific area interests you?";
+    }
+    
+    if (lowerMessage.includes("mechanical") || lowerMessage.includes("machine")) {
+      return "I can assist with Mechanical Engineering subjects including thermodynamics, fluid mechanics, machine design, manufacturing processes, and materials science. What topic would you like to discuss?";
+    }
+    
+    if (lowerMessage.includes("civil") || lowerMessage.includes("construction")) {
+      return "I can help with Civil Engineering topics like structural analysis, concrete technology, surveying, environmental engineering, and construction management. What would you like to learn about?";
+    }
+    
+    if (lowerMessage.includes("exam") || lowerMessage.includes("question") || lowerMessage.includes("test")) {
+      return "I can help you prepare for exams by explaining concepts, providing practice questions, and offering study tips for any polytechnic subject. Which subject's exam are you preparing for?";
+    }
+    
+    if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey")) {
+      return "Hello! I'm here to help you with all your polytechnic studies. Whether you need explanations, practice questions, or study guidance, just ask away!";
+    }
+    
+    // Default response
+    return `I understand you're asking about "${userMessage}". I can help explain polytechnic concepts, provide study materials, and answer questions across all engineering disciplines. Could you be more specific about which subject or topic you'd like help with? I cover Mathematics, Computer Science, Electronics, Mechanical, Civil Engineering, and more!`;
+  };
 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
@@ -38,19 +75,22 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       timestamp: new Date(),
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
+    const currentInput = inputValue;
     setInputValue("");
+    setIsTyping(true);
 
-    // Simulate bot response
+    // Simulate typing delay like ChatGPT
     setTimeout(() => {
       const botResponse: Message = {
         id: messages.length + 2,
-        text: "Thanks for your question! I'm here to help with SBTET repeated questions, exam patterns, and study guidance. For the best experience, please connect me to the ChatGPT API. In the meantime, I can help you with general polytechnic study tips!",
+        text: generateBotResponse(currentInput),
         isBot: true,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+      setIsTyping(false);
+    }, Math.random() * 1000 + 1000); // Random delay between 1-2 seconds
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -105,6 +145,23 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                   </div>
                 </div>
               ))}
+              
+              {isTyping && (
+                <div className="flex justify-start animate-fade-in">
+                  <div className="max-w-[80%] rounded-lg p-3 bg-gray-100 text-gray-800">
+                    <div className="flex items-start space-x-2">
+                      <Bot className="h-4 w-4 mt-1 flex-shrink-0" />
+                      <div>
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </ScrollArea>
           
@@ -114,15 +171,20 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about SBTET questions, exam patterns..."
+                placeholder="Ask questions or request answers about polytechnic subjects..."
                 className="flex-1"
+                disabled={isTyping}
               />
-              <Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700">
+              <Button 
+                onClick={handleSendMessage} 
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={isTyping || !inputValue.trim()}
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Powered by AI • Made for SBTET students
+              AI-powered study assistant • Made for polytechnic students
             </p>
           </div>
         </CardContent>
