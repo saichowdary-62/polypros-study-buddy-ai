@@ -21,55 +21,58 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me questions about Engineering Mathematics, Computer Science, Electronics, Mechanical, Civil Engineering, and more. How can I help you today?",
+      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me questions about Engineering Mathematics, Computer Science, Electronics, Mechanical, Civil Engineering, and more. How can I help you today?\n\n📧 Support: ropebitlabs@gmail.com\n📱 WhatsApp: 8712403113\n📸 Instagram: @aditya_poly_pros",
       isBot: true,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
 
-  const generateBotResponse = (userMessage: string) => {
-    const lowerMessage = userMessage.toLowerCase();
-    
-    // Enhanced keyword-based responses for polytechnic subjects
-    if (lowerMessage.includes("mathematics") || lowerMessage.includes("math") || lowerMessage.includes("calculus") || lowerMessage.includes("algebra")) {
-      return "I can help with Engineering Mathematics topics including:\n• Calculus and Differential Equations\n• Linear Algebra and Matrices\n• Statistics and Probability\n• Complex Numbers\n• Fourier Series\n\nWhat specific math topic would you like to explore?";
-    }
-    
-    if (lowerMessage.includes("computer") || lowerMessage.includes("programming") || lowerMessage.includes("coding") || lowerMessage.includes("software")) {
-      return "Great! I can assist with Computer Science topics:\n• Programming Languages (C, C++, Java, Python)\n• Data Structures and Algorithms\n• Database Management Systems\n• Web Development\n• Operating Systems\n• Computer Networks\n\nWhich area interests you most?";
-    }
-    
-    if (lowerMessage.includes("electronics") || lowerMessage.includes("circuit") || lowerMessage.includes("digital") || lowerMessage.includes("analog")) {
-      return "I can help with Electronics Engineering:\n• Digital Electronics and Logic Gates\n• Analog Circuits and Op-Amps\n• Microprocessors and Microcontrollers\n• Communication Systems\n• Electronic Devices and Circuits\n• PCB Design\n\nWhat specific electronics topic do you need help with?";
-    }
-    
-    if (lowerMessage.includes("mechanical") || lowerMessage.includes("machine") || lowerMessage.includes("thermal") || lowerMessage.includes("fluid")) {
-      return "I can assist with Mechanical Engineering:\n• Thermodynamics and Heat Transfer\n• Fluid Mechanics\n• Machine Design and Manufacturing\n• Engineering Materials\n• Strength of Materials\n• CAD/CAM\n\nWhich mechanical engineering topic would you like to discuss?";
-    }
-    
-    if (lowerMessage.includes("civil") || lowerMessage.includes("construction") || lowerMessage.includes("structural") || lowerMessage.includes("concrete")) {
-      return "I can help with Civil Engineering:\n• Structural Analysis and Design\n• Concrete Technology\n• Surveying and Leveling\n• Environmental Engineering\n• Construction Management\n• Highway Engineering\n\nWhat civil engineering topic interests you?";
-    }
-    
-    if (lowerMessage.includes("exam") || lowerMessage.includes("question") || lowerMessage.includes("test") || lowerMessage.includes("preparation")) {
-      return "I'm here to help with exam preparation! I can:\n• Explain complex concepts in simple terms\n• Provide practice problems\n• Share study tips and strategies\n• Help with previous year questions\n• Create revision notes\n\nWhich subject's exam are you preparing for?";
-    }
-    
-    if (lowerMessage.includes("hello") || lowerMessage.includes("hi") || lowerMessage.includes("hey") || lowerMessage.includes("start")) {
-      return "Hello! Welcome to PolyPros! 👋\n\nI'm your AI study companion for all polytechnic subjects. I can help you with:\n✓ Concept explanations\n✓ Problem solving\n✓ Exam preparation\n✓ Study guidance\n\nJust ask me anything about your polytechnic studies!";
+  const callChatGPT = async (userMessage: string) => {
+    if (!apiKey) {
+      return "Please enter your OpenAI API key to get AI-powered responses. You can get one from https://platform.openai.com/api-keys\n\nFor now, I can provide basic assistance with polytechnic subjects. How can I help you today?";
     }
 
-    if (lowerMessage.includes("thank") || lowerMessage.includes("thanks")) {
-      return "You're welcome! I'm always here to help with your polytechnic studies. Feel free to ask more questions anytime! 😊";
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are PolyPros, an AI study assistant specifically designed for polytechnic students. You help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other polytechnic subjects. Provide clear, educational explanations and solutions. Always be helpful and encouraging to students.'
+            },
+            {
+              role: 'user',
+              content: userMessage
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.choices[0].message.content + "\n\n📧 Need more help? Contact: ropebitlabs@gmail.com\n📱 WhatsApp: 8712403113";
+    } catch (error) {
+      console.error('ChatGPT API Error:', error);
+      return "I'm having trouble connecting to my AI brain right now. Please check your API key or try again later.\n\n📧 For support: ropebitlabs@gmail.com\n📱 WhatsApp: 8712403113\n📸 Instagram: @aditya_poly_pros";
     }
-    
-    // Default response with more helpful suggestions
-    return `I'd be happy to help you with "${userMessage}"! 🤔\n\nI specialize in polytechnic subjects like:\n• Engineering Mathematics\n• Computer Science & Programming\n• Electronics Engineering\n• Mechanical Engineering\n• Civil Engineering\n\nCould you be more specific about which subject or topic you'd like help with? The more details you provide, the better I can assist you!`;
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const newMessage: Message = {
@@ -84,13 +87,14 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate more realistic ChatGPT-like typing delay
-    const delay = Math.min(currentInput.length * 50 + 1000, 3000); // Between 1-3 seconds based on input length
+    // Simulate typing delay
+    const delay = Math.min(currentInput.length * 30 + 1000, 3000);
     
-    setTimeout(() => {
+    setTimeout(async () => {
+      const botResponseText = await callChatGPT(currentInput);
       const botResponse: Message = {
         id: Date.now() + 1,
-        text: generateBotResponse(currentInput),
+        text: botResponseText,
         isBot: true,
         timestamp: new Date(),
       };
@@ -103,6 +107,19 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleApiKeySubmit = () => {
+    if (apiKey.trim()) {
+      setShowApiKeyInput(false);
+      const welcomeMessage: Message = {
+        id: Date.now(),
+        text: "Great! I'm now connected to ChatGPT and ready to provide accurate answers to your polytechnic questions. Ask me anything about your subjects!",
+        isBot: true,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, welcomeMessage]);
     }
   };
 
@@ -123,6 +140,33 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
+
+        {showApiKeyInput && (
+          <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+            <div className="text-sm text-yellow-800 mb-2">
+              To get AI-powered responses, please enter your OpenAI API key:
+            </div>
+            <div className="flex space-x-2">
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Enter your OpenAI API key..."
+                className="flex-1 text-sm"
+              />
+              <Button 
+                onClick={handleApiKeySubmit}
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={!apiKey.trim()}
+              >
+                Connect
+              </Button>
+            </div>
+            <div className="text-xs text-yellow-700 mt-1">
+              Get your API key from: https://platform.openai.com/api-keys
+            </div>
+          </div>
+        )}
         
         <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
           <ScrollArea className="flex-1 p-3 sm:p-4">
@@ -201,7 +245,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              AI-powered study assistant • Made for polytechnic students
+              AI-powered by ChatGPT • Made for polytechnic students
             </p>
           </div>
         </CardContent>
