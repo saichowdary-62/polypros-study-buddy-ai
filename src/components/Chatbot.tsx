@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, Bot, User } from "lucide-react";
+import { X, Send, Bot, User, Key } from "lucide-react";
 
 interface Message {
   id: number;
@@ -20,14 +20,23 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me questions about Engineering Mathematics, Computer Science, Electronics, Mechanical, Civil Engineering, and more. How can I help you today?",
+      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Please enter your OpenAI API key above to start chatting with me!",
       isBot: true,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Load API key from localStorage on component mount
+    const savedApiKey = localStorage.getItem('openai-api-key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,16 +46,30 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  const handleApiKeyChange = (value: string) => {
+    setApiKey(value);
+    // Save to localStorage
+    if (value) {
+      localStorage.setItem('openai-api-key', value);
+    } else {
+      localStorage.removeItem('openai-api-key');
+    }
+  };
+
   const callChatGPT = async (userMessage: string) => {
+    if (!apiKey) {
+      return "Please enter your OpenAI API key above to start chatting.";
+    }
+
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer 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`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-2025-04-14',
+          model: 'gpt-4',
           messages: [
             {
               role: 'system',
@@ -68,23 +91,27 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         console.error('API Error:', data);
         
         if (response.status === 429) {
-          return "I apologize, but I'm currently experiencing high demand. This usually means the API usage limit has been reached. Please try again in a few minutes, or contact support for assistance.";
+          return "I apologize, but I'm currently experiencing high demand. This usually means the API usage limit has been reached. Please try again in a few minutes.";
         } else if (response.status === 401) {
-          return "There seems to be an authentication issue with the AI service. Please contact our support team for assistance.";
+          return "Invalid API key. Please check your OpenAI API key and try again.";
         } else {
-          return `I encountered an error (${response.status}). Please try again or contact our support team if the issue persists.`;
+          return `I encountered an error (${response.status}). Please check your API key and try again.`;
         }
       }
 
       return data.choices[0].message.content;
     } catch (error) {
       console.error('ChatGPT API Error:', error);
-      return "I'm experiencing connection issues right now. Please check your internet connection and try again. If the problem continues, please contact our support team.";
+      return "I'm experiencing connection issues right now. Please check your internet connection and API key, then try again.";
     }
   };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
+    if (!apiKey) {
+      alert("Please enter your OpenAI API key first.");
+      return;
+    }
 
     const newMessage: Message = {
       id: Date.now(),
@@ -111,7 +138,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       console.error('Error in handleSendMessage:', error);
       const errorResponse: Message = {
         id: Date.now() + 1,
-        text: "Sorry, I encountered an unexpected error. Please try again or contact our support team.",
+        text: "Sorry, I encountered an unexpected error. Please check your API key and try again.",
         isBot: true,
         timestamp: new Date(),
       };
@@ -147,6 +174,28 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         >
           <X className="h-5 w-5" />
         </Button>
+      </div>
+
+      {/* API Key Input */}
+      <div className="bg-blue-50 border-b p-4 shrink-0">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center space-x-3">
+            <Key className="h-5 w-5 text-blue-600" />
+            <Input
+              type="password"
+              placeholder="Enter your OpenAI API key..."
+              value={apiKey}
+              onChange={(e) => handleApiKeyChange(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+          <p className="text-sm text-gray-600 mt-2">
+            Your API key is stored locally and never shared. Get your key from{" "}
+            <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+              OpenAI Platform
+            </a>
+          </p>
+        </div>
       </div>
 
       {/* Chat Area */}
@@ -220,12 +269,12 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                 onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about polytechnic subjects..."
                 className="flex-1 rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                disabled={isTyping}
+                disabled={isTyping || !apiKey}
               />
               <Button 
                 onClick={handleSendMessage} 
                 className="bg-blue-600 hover:bg-blue-700 rounded-full h-12 w-12 p-0 shrink-0"
-                disabled={isTyping || !inputValue.trim()}
+                disabled={isTyping || !inputValue.trim() || !apiKey}
               >
                 <Send className="h-5 w-5" />
               </Button>
