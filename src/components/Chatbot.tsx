@@ -2,9 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, Bot, User, Menu } from "lucide-react";
+import { X, Send, Bot, User } from "lucide-react";
 
 interface Message {
   id: number;
@@ -28,7 +27,6 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -40,21 +38,19 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   }, [messages, isTyping]);
 
   const callChatGPT = async (userMessage: string) => {
-    const apiKey = "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";
-
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer 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`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4.1-2025-04-14',
           messages: [
             {
               role: 'system',
-              content: 'You are PolyPros, an AI study assistant specifically designed for polytechnic students. You help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other polytechnic subjects. Provide clear, educational explanations and solutions. Always be helpful and encouraging to students. Format your responses clearly with proper spacing and structure.'
+              content: 'You are PolyPros, an AI study assistant specifically designed for polytechnic students. You help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other polytechnic subjects. Provide clear, educational explanations and solutions. Always be helpful and encouraging to students. Format your responses clearly with proper spacing and structure. Be conversational and engaging like ChatGPT.'
             },
             {
               role: 'user',
@@ -62,19 +58,28 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             }
           ],
           temperature: 0.7,
-          max_tokens: 1500,
+          max_tokens: 2000,
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`API call failed: ${response.status}`);
+        console.error('API Error:', data);
+        
+        if (response.status === 429) {
+          return "I apologize, but I'm currently experiencing high demand. This usually means the API usage limit has been reached. Please try again in a few minutes, or contact support for assistance.";
+        } else if (response.status === 401) {
+          return "There seems to be an authentication issue with the AI service. Please contact our support team for assistance.";
+        } else {
+          return `I encountered an error (${response.status}). Please try again or contact our support team if the issue persists.`;
+        }
       }
 
-      const data = await response.json();
       return data.choices[0].message.content;
     } catch (error) {
       console.error('ChatGPT API Error:', error);
-      return "I'm having trouble connecting to my AI brain right now. Please try again in a moment. If the issue persists, please contact our support team.";
+      return "I'm experiencing connection issues right now. Please check your internet connection and try again. If the problem continues, please contact our support team.";
     }
   };
 
@@ -103,9 +108,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error) {
+      console.error('Error in handleSendMessage:', error);
       const errorResponse: Message = {
         id: Date.now() + 1,
-        text: "Sorry, I encountered an error while processing your request. Please try again.",
+        text: "Sorry, I encountered an unexpected error. Please try again or contact our support team.",
         isBot: true,
         timestamp: new Date(),
       };
@@ -125,7 +131,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* Header */}
-      <div className="bg-blue-600 text-white p-4 flex items-center justify-between shadow-md">
+      <div className="bg-blue-600 text-white p-4 flex items-center justify-between shadow-md shrink-0">
         <div className="flex items-center space-x-3">
           <Bot className="h-6 w-6" />
           <div>
@@ -144,8 +150,8 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <ScrollArea className="flex-1 px-4 py-6" ref={scrollAreaRef}>
+      <div className="flex-1 flex flex-col min-h-0">
+        <ScrollArea className="flex-1 px-4 py-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {messages.map((message) => (
               <div
@@ -205,7 +211,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         </ScrollArea>
         
         {/* Input Area */}
-        <div className="border-t bg-white p-4">
+        <div className="border-t bg-white p-4 shrink-0">
           <div className="max-w-4xl mx-auto">
             <div className="flex space-x-3">
               <Input
