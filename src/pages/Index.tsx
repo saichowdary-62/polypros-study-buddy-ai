@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle, BookOpen, Clock, Users, Send, Bot } from "lucide-react";
+import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram } from "lucide-react";
 import { Chatbot } from "@/components/Chatbot";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Link } from "react-router-dom";
@@ -124,9 +124,26 @@ const Index = () => {
               <Bot className="h-8 w-8 text-blue-400" />
               <span className="text-2xl font-bold">PolyPros</span>
             </div>
-            <p className="text-blue-200 mb-4">
+            <p className="text-blue-200 mb-6">
               Your trusted AI study companion for polytechnic success
             </p>
+            
+            {/* Contact Information */}
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="flex items-center justify-center space-x-2">
+                <Mail className="h-5 w-5 text-blue-400" />
+                <span className="text-blue-200">ropebitlabs@gmail.com</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <Phone className="h-5 w-5 text-blue-400" />
+                <span className="text-blue-200">8712403113</span>
+              </div>
+              <div className="flex items-center justify-center space-x-2">
+                <Instagram className="h-5 w-5 text-blue-400" />
+                <span className="text-blue-200">@aditya_poly_pros</span>
+              </div>
+            </div>
+            
             <div className="border-t border-blue-800 pt-8">
               <p className="text-blue-300">
                 © 2025 PolyPros | Created by Aditya Polytechnic College students with Ropebit Labs

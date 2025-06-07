@@ -21,20 +21,16 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me questions about Engineering Mathematics, Computer Science, Electronics, Mechanical, Civil Engineering, and more. How can I help you today?\n\n📧 Support: ropebitlabs@gmail.com\n📱 WhatsApp: 8712403113\n📸 Instagram: @aditya_poly_pros",
+      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me questions about Engineering Mathematics, Computer Science, Electronics, Mechanical, Civil Engineering, and more. How can I help you today?",
       isBot: true,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [apiKey, setApiKey] = useState("");
-  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
 
   const callChatGPT = async (userMessage: string) => {
-    if (!apiKey) {
-      return "Please enter your OpenAI API key to get AI-powered responses. You can get one from https://platform.openai.com/api-keys\n\nFor now, I can provide basic assistance with polytechnic subjects. How can I help you today?";
-    }
+    const apiKey = "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";
 
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -65,10 +61,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       }
 
       const data = await response.json();
-      return data.choices[0].message.content + "\n\n📧 Need more help? Contact: ropebitlabs@gmail.com\n📱 WhatsApp: 8712403113";
+      return data.choices[0].message.content;
     } catch (error) {
       console.error('ChatGPT API Error:', error);
-      return "I'm having trouble connecting to my AI brain right now. Please check your API key or try again later.\n\n📧 For support: ropebitlabs@gmail.com\n📱 WhatsApp: 8712403113\n📸 Instagram: @aditya_poly_pros";
+      return "I'm having trouble connecting to my AI brain right now. Please try again in a moment.";
     }
   };
 
@@ -110,19 +106,6 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     }
   };
 
-  const handleApiKeySubmit = () => {
-    if (apiKey.trim()) {
-      setShowApiKeyInput(false);
-      const welcomeMessage: Message = {
-        id: Date.now(),
-        text: "Great! I'm now connected to ChatGPT and ready to provide accurate answers to your polytechnic questions. Ask me anything about your subjects!",
-        isBot: true,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, welcomeMessage]);
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
       <Card className="w-full max-w-4xl h-[90vh] sm:h-[600px] flex flex-col animate-scale-in">
@@ -140,33 +123,6 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             <X className="h-4 w-4" />
           </Button>
         </CardHeader>
-
-        {showApiKeyInput && (
-          <div className="p-4 bg-yellow-50 border-b border-yellow-200">
-            <div className="text-sm text-yellow-800 mb-2">
-              To get AI-powered responses, please enter your OpenAI API key:
-            </div>
-            <div className="flex space-x-2">
-              <Input
-                type="password"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                placeholder="Enter your OpenAI API key..."
-                className="flex-1 text-sm"
-              />
-              <Button 
-                onClick={handleApiKeySubmit}
-                className="bg-blue-600 hover:bg-blue-700"
-                disabled={!apiKey.trim()}
-              >
-                Connect
-              </Button>
-            </div>
-            <div className="text-xs text-yellow-700 mt-1">
-              Get your API key from: https://platform.openai.com/api-keys
-            </div>
-          </div>
-        )}
         
         <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
           <ScrollArea className="flex-1 p-3 sm:p-4">
