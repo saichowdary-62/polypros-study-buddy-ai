@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { X, Send, Bot, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: number;
@@ -38,27 +37,54 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const callChatGPT = async (userMessage: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { message: userMessage }
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        return "I'm experiencing some technical difficulties. Please try again in a moment.";
-      }
-
-      if (data.error) {
-        console.error('Chat function returned error:', data.error);
-        return data.error;
-      }
-
-      return data.response;
-    } catch (error) {
-      console.error('Chat error:', error);
-      return "I'm having trouble connecting right now. Please check your internet connection and try again.";
+  const generateResponse = (userMessage: string): string => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Engineering Mathematics responses
+    if (lowerMessage.includes('math') || lowerMessage.includes('calculus') || lowerMessage.includes('differential') || lowerMessage.includes('integral')) {
+      return "I can help you with Engineering Mathematics! Whether it's calculus, differential equations, linear algebra, or statistics, I'm here to explain concepts step by step. What specific topic would you like to explore?";
     }
+    
+    // Computer Science responses
+    if (lowerMessage.includes('programming') || lowerMessage.includes('code') || lowerMessage.includes('algorithm') || lowerMessage.includes('data structure')) {
+      return "Great question about Computer Science! I can assist with programming concepts, algorithms, data structures, software engineering, and more. Which programming language or concept are you working with?";
+    }
+    
+    // Electronics responses
+    if (lowerMessage.includes('circuit') || lowerMessage.includes('electronic') || lowerMessage.includes('voltage') || lowerMessage.includes('current')) {
+      return "Electronics is fascinating! I can help you understand circuits, digital electronics, analog systems, microprocessors, and electronic components. What specific electronics topic are you studying?";
+    }
+    
+    // Mechanical Engineering responses
+    if (lowerMessage.includes('mechanical') || lowerMessage.includes('engine') || lowerMessage.includes('thermodynamics') || lowerMessage.includes('mechanics')) {
+      return "Mechanical Engineering covers so many interesting areas! From thermodynamics and fluid mechanics to machine design and manufacturing processes. What mechanical engineering concept can I help clarify?";
+    }
+    
+    // Civil Engineering responses
+    if (lowerMessage.includes('civil') || lowerMessage.includes('construction') || lowerMessage.includes('structural') || lowerMessage.includes('concrete')) {
+      return "Civil Engineering is the backbone of our infrastructure! I can help with structural analysis, construction materials, surveying, environmental engineering, and more. What civil engineering topic interests you?";
+    }
+    
+    // General study help
+    if (lowerMessage.includes('study') || lowerMessage.includes('exam') || lowerMessage.includes('test') || lowerMessage.includes('preparation')) {
+      return "I'm here to help you study effectively! I can break down complex concepts, provide examples, create study plans, and explain difficult topics in simple terms. What subject or topic are you preparing for?";
+    }
+    
+    // Greeting responses
+    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+      return "Hello! I'm excited to help you with your polytechnic studies. Whether you need help with calculations, understanding concepts, or preparing for exams, I'm here to assist. What would you like to learn about today?";
+    }
+    
+    // Default helpful response
+    return `That's an interesting question about "${userMessage}". As your AI study assistant, I'm designed to help with polytechnic subjects including Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, and Civil Engineering. Could you provide a bit more context about what specific aspect you'd like me to explain or help you with?`;
+  };
+
+  const simulateTyping = async (response: string): Promise<void> => {
+    return new Promise((resolve) => {
+      // Simulate realistic typing delay (50-100ms per character)
+      const typingDelay = Math.min(2000, response.length * 30);
+      setTimeout(resolve, typingDelay);
+    });
   };
 
   const handleSendMessage = async () => {
@@ -77,19 +103,25 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setIsTyping(true);
 
     try {
-      const botResponseText = await callChatGPT(currentInput);
+      // Generate response
+      const responseText = generateResponse(currentInput);
+      
+      // Simulate typing delay
+      await simulateTyping(responseText);
+      
       const botResponse: Message = {
         id: Date.now() + 1,
-        text: botResponseText,
+        text: responseText,
         isBot: true,
         timestamp: new Date(),
       };
+      
       setMessages(prev => [...prev, botResponse]);
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
+      console.error('Error generating response:', error);
       const errorResponse: Message = {
         id: Date.now() + 1,
-        text: "Sorry, I encountered an unexpected error. Please try again.",
+        text: "I apologize, but I'm having trouble processing your request right now. Please try asking your question again!",
         isBot: true,
         timestamp: new Date(),
       };
@@ -209,7 +241,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Powered by OpenAI GPT • Made for polytechnic students
+              AI Study Assistant • Made for polytechnic students
             </p>
           </div>
         </div>
