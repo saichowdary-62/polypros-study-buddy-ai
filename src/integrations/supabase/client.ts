@@ -5,7 +5,19 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+  console.error('Supabase environment variables missing:', {
+    VITE_SUPABASE_URL: !!supabaseUrl,
+    VITE_SUPABASE_ANON_KEY: !!supabaseAnonKey
+  })
+  
+  // Create a mock client to prevent app crash
+  const mockClient = {
+    functions: {
+      invoke: () => Promise.reject(new Error('Supabase not properly configured. Please check your environment variables.'))
+    }
+  }
+  
+  export const supabase = mockClient as any
+} else {
+  export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
