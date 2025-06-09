@@ -13,17 +13,23 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Chat function called with method:', req.method)
+    
     const { message } = await req.json()
+    console.log('Received message:', message)
 
     if (!message) {
       throw new Error('Message is required')
     }
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
+    console.log('OpenAI API key exists:', !!openaiApiKey)
+    
     if (!openaiApiKey) {
       throw new Error('OpenAI API key not configured')
     }
 
+    console.log('Making request to OpenAI...')
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -31,7 +37,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -46,6 +52,8 @@ serve(async (req) => {
         max_tokens: 2000,
       }),
     })
+
+    console.log('OpenAI response status:', response.status)
 
     if (!response.ok) {
       const errorData = await response.json()
@@ -62,6 +70,7 @@ serve(async (req) => {
 
     const data = await response.json()
     const aiResponse = data.choices[0].message.content
+    console.log('AI response generated successfully')
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
