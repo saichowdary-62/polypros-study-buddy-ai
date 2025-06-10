@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, Bot, User } from "lucide-react";
+import { X, Send, Bot, User, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -29,6 +29,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -39,26 +40,29 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isTyping) return;
+  const handleSendMessage = async (retryMessage?: string) => {
+    const messageToSend = retryMessage || inputValue;
+    if (!messageToSend.trim() || isTyping) return;
 
-    const newMessage: Message = {
-      id: Date.now(),
-      text: inputValue,
-      isBot: false,
-      timestamp: new Date(),
-    };
+    // Add user message only if not retrying
+    if (!retryMessage) {
+      const newMessage: Message = {
+        id: Date.now(),
+        text: messageToSend,
+        isBot: false,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, newMessage]);
+      setInputValue("");
+    }
 
-    setMessages(prev => [...prev, newMessage]);
-    const currentInput = inputValue;
-    setInputValue("");
     setIsTyping(true);
 
     try {
-      console.log('Sending message to AI:', currentInput);
+      console.log('Sending message to AI:', messageToSend);
       
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: { message: currentInput }
+        body: { message: messageToSend }
       });
 
       if (error) {
@@ -80,6 +84,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       };
       
       setMessages(prev => [...prev, botResponse]);
+      setRetryCount(0); // Reset retry count on success
     } catch (error) {
       console.error('Error getting AI response:', error);
       
@@ -87,16 +92,21 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       
       // Show user-friendly error message
       toast.error('AI response failed', {
-        description: errorMessage
+        description: errorMessage,
+        action: {
+          label: 'Retry',
+          onClick: () => handleSendMessage(messageToSend)
+        }
       });
       
       const errorResponse: Message = {
         id: Date.now() + 1,
-        text: `Sorry, I'm having trouble connecting right now. Error: ${errorMessage}. Please try again in a moment.`,
+        text: `Sorry, I'm having trouble connecting right now. Error: ${errorMessage}. Please try again.`,
         isBot: true,
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorResponse]);
+      setRetryCount(prev => prev + 1);
     } finally {
       setIsTyping(false);
     }
@@ -107,6 +117,18 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        id: 1,
+        text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me anything about Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more!",
+        isBot: true,
+        timestamp: new Date(),
+      },
+    ]);
+    setRetryCount(0);
   };
 
   return (
@@ -120,14 +142,25 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             <p className="text-sm text-blue-100">AI Study Assistant</p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="text-white hover:bg-blue-700 h-10 w-10 p-0"
-        >
-          <X className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearChat}
+            className="text-white hover:bg-blue-700 h-10 w-10 p-0"
+            title="Clear chat"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-white hover:bg-blue-700 h-10 w-10 p-0"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Chat Area */}
@@ -204,7 +237,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                 disabled={isTyping}
               />
               <Button 
-                onClick={handleSendMessage} 
+                onClick={() => handleSendMessage()} 
                 className="bg-blue-600 hover:bg-blue-700 rounded-full h-12 w-12 p-0 shrink-0"
                 disabled={isTyping || !inputValue.trim()}
               >
