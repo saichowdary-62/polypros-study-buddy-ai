@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, Bot, User, RefreshCw } from "lucide-react";
+import { X, Send, Bot, User, RefreshCw, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ interface Message {
   text: string;
   isBot: boolean;
   timestamp: Date;
+  isError?: boolean;
 }
 
 interface ChatbotProps {
@@ -22,14 +23,13 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me anything about Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more!",
+      text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
       isBot: true,
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -41,8 +41,8 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   }, [messages, isTyping]);
 
   const handleSendMessage = async (retryMessage?: string) => {
-    const messageToSend = retryMessage || inputValue;
-    if (!messageToSend.trim() || isTyping) return;
+    const messageToSend = retryMessage || inputValue.trim();
+    if (!messageToSend || isTyping) return;
 
     // Add user message only if not retrying
     if (!retryMessage) {
@@ -59,22 +59,52 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setIsTyping(true);
 
     try {
-      console.log('Sending message to AI:', messageToSend);
+      console.log('Sending message to chat function:', messageToSend);
       
       const { data, error } = await supabase.functions.invoke('chat', {
         body: { message: messageToSend }
       });
 
+      console.log('Function response:', { data, error });
+
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to get AI response');
+        throw new Error('Failed to connect to AI service');
       }
 
-      if (!data || !data.response) {
+      if (data?.error) {
+        // Handle errors returned by the function
+        console.error('AI service error:', data.error);
+        
+        const errorResponse: Message = {
+          id: Date.now() + 1,
+          text: data.error,
+          isBot: true,
+          timestamp: new Date(),
+          isError: true,
+        };
+        
+        setMessages(prev => [...prev, errorResponse]);
+        
+        // Show toast with retry option for certain errors
+        if (data.error.includes('quota') || data.error.includes('high demand')) {
+          toast.error('AI Service Issue', {
+            description: data.error,
+            action: {
+              label: 'Retry',
+              onClick: () => handleSendMessage(messageToSend)
+            }
+          });
+        }
+        
+        return;
+      }
+
+      if (!data?.response) {
         throw new Error('No response received from AI');
       }
 
-      console.log('AI response received:', data.response);
+      console.log('AI response received:', data.response.substring(0, 100) + '...');
 
       const botResponse: Message = {
         id: Date.now() + 1,
@@ -84,14 +114,23 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       };
       
       setMessages(prev => [...prev, botResponse]);
-      setRetryCount(0); // Reset retry count on success
+      
     } catch (error) {
       console.error('Error getting AI response:', error);
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
-      // Show user-friendly error message
-      toast.error('AI response failed', {
+      const errorResponse: Message = {
+        id: Date.now() + 1,
+        text: `I'm having trouble connecting right now. ${errorMessage}. Please try again in a moment.`,
+        isBot: true,
+        timestamp: new Date(),
+        isError: true,
+      };
+      
+      setMessages(prev => [...prev, errorResponse]);
+      
+      toast.error('Connection Error', {
         description: errorMessage,
         action: {
           label: 'Retry',
@@ -99,14 +138,6 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         }
       });
       
-      const errorResponse: Message = {
-        id: Date.now() + 1,
-        text: `Sorry, I'm having trouble connecting right now. Error: ${errorMessage}. Please try again.`,
-        isBot: true,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorResponse]);
-      setRetryCount(prev => prev + 1);
     } finally {
       setIsTyping(false);
     }
@@ -123,12 +154,11 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages([
       {
         id: 1,
-        text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. Ask me anything about Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more!",
+        text: "Hello! I'm PolyPros, your AI study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
         isBot: true,
         timestamp: new Date(),
       },
     ]);
-    setRetryCount(0);
   };
 
   return (
@@ -174,10 +204,18 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               >
                 <div className={`flex items-start space-x-3 max-w-[85%] ${message.isBot ? "" : "flex-row-reverse space-x-reverse"}`}>
                   <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.isBot ? "bg-blue-100" : "bg-gray-700"
+                    message.isBot 
+                      ? message.isError 
+                        ? "bg-red-100" 
+                        : "bg-blue-100" 
+                      : "bg-gray-700"
                   }`}>
                     {message.isBot ? (
-                      <Bot className="h-4 w-4 text-blue-600" />
+                      message.isError ? (
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                      ) : (
+                        <Bot className="h-4 w-4 text-blue-600" />
+                      )
                     ) : (
                       <User className="h-4 w-4 text-white" />
                     )}
@@ -185,14 +223,20 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                   
                   <div className={`rounded-2xl px-4 py-3 ${
                     message.isBot
-                      ? "bg-gray-100 text-gray-800"
+                      ? message.isError
+                        ? "bg-red-50 text-red-800 border border-red-200"
+                        : "bg-gray-100 text-gray-800"
                       : "bg-blue-600 text-white"
                   }`}>
                     <div className="text-sm leading-relaxed whitespace-pre-wrap">
                       {message.text}
                     </div>
                     <div className={`text-xs mt-2 ${
-                      message.isBot ? "text-gray-500" : "text-blue-200"
+                      message.isBot 
+                        ? message.isError 
+                          ? "text-red-500" 
+                          : "text-gray-500" 
+                        : "text-blue-200"
                     }`}>
                       {message.timestamp.toLocaleTimeString([], { 
                         hour: '2-digit', 

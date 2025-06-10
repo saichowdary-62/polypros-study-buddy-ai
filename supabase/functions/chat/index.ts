@@ -26,7 +26,15 @@ serve(async (req) => {
     console.log('OpenAI API key exists:', !!openaiApiKey)
     
     if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured')
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured. Please add your OPENAI_API_KEY in the Supabase dashboard.' 
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        },
+      )
     }
 
     console.log('Making request to OpenAI...')
@@ -49,7 +57,7 @@ serve(async (req) => {
           }
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 1500,
       }),
     })
 
@@ -59,18 +67,32 @@ serve(async (req) => {
       const errorData = await response.json()
       console.error('OpenAI API Error:', errorData)
       
+      let userFriendlyMessage = 'Sorry, I encountered an error. Please try again.'
+      
       if (response.status === 429) {
-        throw new Error("I'm currently experiencing high demand. Please try again in a few minutes.")
+        if (errorData.error?.code === 'insufficient_quota') {
+          userFriendlyMessage = "It looks like the OpenAI API quota has been exceeded. Please check your OpenAI billing dashboard or try again later."
+        } else {
+          userFriendlyMessage = "I'm currently experiencing high demand. Please wait a moment and try again."
+        }
       } else if (response.status === 401) {
-        throw new Error("API configuration error. Please contact support.")
-      } else {
-        throw new Error(`Service temporarily unavailable (${response.status}). Please try again.`)
+        userFriendlyMessage = "There's an issue with the API configuration. Please contact support."
+      } else if (response.status === 400) {
+        userFriendlyMessage = "There was an issue with your request. Please try rephrasing your question."
       }
+      
+      return new Response(
+        JSON.stringify({ error: userFriendlyMessage }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200, // Return 200 so the frontend can handle the error gracefully
+        },
+      )
     }
 
     const data = await response.json()
     const aiResponse = data.choices[0].message.content
-    console.log('AI response generated successfully')
+    console.log('AI response generated successfully, length:', aiResponse.length)
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
@@ -83,11 +105,11 @@ serve(async (req) => {
     console.error('Chat function error:', error)
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'An unexpected error occurred. Please try again.' 
+        error: 'I encountered an unexpected error. Please try again in a moment.' 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 200, // Return 200 so the frontend can handle the error gracefully
       },
     )
   }
