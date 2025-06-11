@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,7 +39,7 @@ const Index = () => {
               <span className="text-blue-600">PolyPros!</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Your intelligent AI study assistant for all polytechnic subjects. Get instant answers, 
+              Your intelligent Rope AI study assistant for all polytechnic subjects. Get instant answers, 
               explanations, and study help for Engineering, Computer Science, Mathematics, and more.
             </p>
             <Button
@@ -125,7 +124,7 @@ const Index = () => {
               <span className="text-2xl font-bold">PolyPros</span>
             </div>
             <p className="text-blue-200 mb-6">
-              Your trusted AI study companion for polytechnic success
+              Your trusted Rope AI study companion for polytechnic success
             </p>
             
             {/* Contact Information */}

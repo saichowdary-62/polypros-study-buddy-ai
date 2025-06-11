@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -48,7 +47,7 @@ serve(async (req) => {
           {
             parts: [
               {
-                text: `You are PolyPros, an AI study assistant specifically for SBTET (State Board of Technical Education and Training) Andhra Pradesh polytechnic students. 
+                text: `You are PolyPros, a Rope AI study assistant specifically for SBTET (State Board of Technical Education and Training) Andhra Pradesh polytechnic students. 
 
 FOCUS AREAS: Only answer questions related to SBTET AP curriculum including:
 - Engineering Mathematics (as per SBTET syllabus)
@@ -65,8 +64,6 @@ IMPORTANT GUIDELINES:
 - Only provide detailed explanations when asked for examples or step-by-step solutions
 - Reference SBTET AP syllabus patterns when relevant
 - If question is not related to SBTET AP polytechnic studies, politely redirect to relevant topics
-
-Always end your response with: "Thanks to Gemini AI ✨"
 
 User question: ${message}`
               }
