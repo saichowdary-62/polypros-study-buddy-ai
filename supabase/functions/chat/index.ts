@@ -22,13 +22,13 @@ serve(async (req) => {
       throw new Error('Message is required')
     }
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
-    console.log('OpenAI API key exists:', !!openaiApiKey)
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    console.log('Gemini API key exists:', !!geminiApiKey)
     
-    if (!openaiApiKey) {
+    if (!geminiApiKey) {
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured. Please add your OPENAI_API_KEY in the Supabase dashboard.' 
+          error: 'Gemini API key not configured. Please add your GEMINI_API_KEY in the Supabase dashboard.' 
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -37,44 +37,61 @@ serve(async (req) => {
       )
     }
 
-    console.log('Making request to OpenAI...')
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('Making request to Gemini...')
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
+        contents: [
           {
-            role: 'system',
-            content: 'You are PolyPros, an AI study assistant specifically designed for polytechnic students. You help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other polytechnic subjects. Provide clear, educational explanations and solutions. Always be helpful and encouraging to students. Format your responses clearly with proper spacing and structure. Be conversational and engaging like ChatGPT.'
-          },
-          {
-            role: 'user',
-            content: message
+            parts: [
+              {
+                text: `You are PolyPros, an AI study assistant specifically designed for polytechnic students. You help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other polytechnic subjects. Provide clear, educational explanations and solutions. Always be helpful and encouraging to students. Format your responses clearly with proper spacing and structure. Be conversational and engaging like an AI assistant.
+
+User question: ${message}`
+              }
+            ]
           }
         ],
-        temperature: 0.7,
-        max_tokens: 1500,
+        generationConfig: {
+          temperature: 0.7,
+          topK: 1,
+          topP: 1,
+          maxOutputTokens: 1500,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
       }),
     })
 
-    console.log('OpenAI response status:', response.status)
+    console.log('Gemini response status:', response.status)
 
     if (!response.ok) {
       const errorData = await response.json()
-      console.error('OpenAI API Error:', errorData)
+      console.error('Gemini API Error:', errorData)
       
       let userFriendlyMessage = 'Sorry, I encountered an error. Please try again.'
       
       if (response.status === 429) {
-        if (errorData.error?.code === 'insufficient_quota') {
-          userFriendlyMessage = "It looks like the OpenAI API quota has been exceeded. Please check your OpenAI billing dashboard or try again later."
-        } else {
-          userFriendlyMessage = "I'm currently experiencing high demand. Please wait a moment and try again."
-        }
+        userFriendlyMessage = "I'm currently experiencing high demand. Please wait a moment and try again."
       } else if (response.status === 401) {
         userFriendlyMessage = "There's an issue with the API configuration. Please contact support."
       } else if (response.status === 400) {
@@ -91,7 +108,7 @@ serve(async (req) => {
     }
 
     const data = await response.json()
-    const aiResponse = data.choices[0].message.content
+    const aiResponse = data.candidates[0].content.parts[0].text
     console.log('AI response generated successfully, length:', aiResponse.length)
 
     return new Response(
