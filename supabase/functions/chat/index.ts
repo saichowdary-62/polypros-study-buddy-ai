@@ -48,7 +48,11 @@ serve(async (req) => {
           {
             parts: [
               {
-                text: `You are PolyPros, an AI study assistant specifically designed for polytechnic students. You help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other polytechnic subjects. Provide clear, educational explanations and solutions. Always be helpful and encouraging to students. Format your responses clearly with proper spacing and structure. Be conversational and engaging like an AI assistant.
+                text: `You are PolyPros, an AI study assistant for polytechnic students. Help with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and other subjects.
+
+IMPORTANT: Keep responses SHORT and CONCISE for mobile users. For simple questions, give brief 2-3 sentence answers. Only provide detailed explanations when specifically asked for examples or step-by-step solutions.
+
+Always end your response with: "Thanks to Gemini AI ✨"
 
 User question: ${message}`
               }
@@ -59,7 +63,7 @@ User question: ${message}`
           temperature: 0.7,
           topK: 1,
           topP: 1,
-          maxOutputTokens: 1500,
+          maxOutputTokens: 800,
         },
         safetySettings: [
           {
