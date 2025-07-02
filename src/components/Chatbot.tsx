@@ -161,7 +161,13 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-white z-50 flex flex-col">
+    <div className="fixed inset-0 bg-white z-50 flex flex-col safe-area-inset">
+      {/* Browser compatibility notice */}
+      <div className="bg-yellow-50 border-b border-yellow-200 px-4 py-2 text-center">
+        <p className="text-xs text-yellow-800">
+          For best experience, use Chrome, Brave, or other modern browsers
+        </p>
+      </div>
       {/* Header */}
       <div className="bg-blue-600 text-white p-4 flex items-center justify-between shadow-md shrink-0">
         <div className="flex items-center space-x-3">
@@ -268,14 +274,22 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         </ScrollArea>
         
         {/* Input Area */}
-        <div className="border-t bg-white p-4 shrink-0">
+        <div className="border-t bg-white p-4 shrink-0 pb-safe">
           <div className="max-w-4xl mx-auto">
-            <div className="flex space-x-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-center">
+              <p className="text-xs text-blue-700 mb-1">
+                💝 Support PolyPros Development
+              </p>
+              <p className="text-xs text-blue-600">
+                Donate via UPI: <span className="font-mono font-semibold">8688673113@upi</span>
+              </p>
+            </div>
+            <div className="flex space-x-3 mb-2">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about polytechnic subjects..."
+                placeholder="Ask me about SBTET AP polytechnic subjects..."
                 className="flex-1 rounded-full border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 disabled={isTyping}
               />
@@ -287,8 +301,9 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                 <Send className="h-5 w-5" />
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              PolyPros Study Assistant • Made for polytechnic students
+            <p className="text-xs text-gray-500 text-center">
+              PolyPros Study Assistant • Made for SBTET AP students<br/>
+              <span className="text-gray-400">Tip: Ask for "detailed explanation" for more info</span>
             </p>
           </div>
         </div>
