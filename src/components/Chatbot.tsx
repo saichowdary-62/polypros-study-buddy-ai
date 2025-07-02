@@ -22,7 +22,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your Rope AI study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
+      text: "Hello! I'm PolyPros, your study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
       isBot: true,
       timestamp: new Date(),
     },
@@ -153,7 +153,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages([
       {
         id: 1,
-        text: "Hello! I'm PolyPros, your Rope AI study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
+        text: "Hello! I'm PolyPros, your study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
         isBot: true,
         timestamp: new Date(),
       },
@@ -168,7 +168,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
           <Bot className="h-6 w-6" />
           <div>
             <h1 className="text-lg font-semibold">PolyPros</h1>
-            <p className="text-sm text-blue-100">Rope AI Study Assistant</p>
+            <p className="text-sm text-blue-100">PolyPros Study Assistant</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -288,7 +288,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Rope AI Study Assistant • Made for polytechnic students
+              PolyPros Study Assistant • Made for polytechnic students
             </p>
           </div>
         </div>

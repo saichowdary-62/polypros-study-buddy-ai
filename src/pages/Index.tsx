@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, Sparkles, ArrowDown } from "lucide-react";
+import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown } from "lucide-react";
 import { Chatbot } from "@/components/Chatbot";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Link } from "react-router-dom";
@@ -26,10 +26,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2 animate-fade-in">
-              <div className="relative">
-                <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
-                <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-yellow-400 animate-pulse" />
-              </div>
+              <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
               <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
             </div>
             <div className="flex space-x-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
@@ -54,7 +51,6 @@ const Index = () => {
               <div className="relative inline-block">
                 <Bot className="h-24 w-24 text-blue-600 mx-auto mb-6 animate-float" />
                 <div className="absolute inset-0 bg-blue-600/10 rounded-full animate-ping"></div>
-                <Sparkles className="absolute top-2 right-2 h-6 w-6 text-yellow-400 animate-pulse" style={{ animationDelay: '1s' }} />
               </div>
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-6 animate-slide-up">
@@ -64,7 +60,7 @@ const Index = () => {
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
-              Your intelligent Rope AI study assistant for all polytechnic subjects. Get instant answers, 
+              Your intelligent PolyPros study assistant for all polytechnic subjects. Get instant answers, 
               explanations, and study help for Engineering, Computer Science, Mathematics, and more.
             </p>
             <div className="animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
@@ -121,7 +117,7 @@ const Index = () => {
               <FeatureCard
                 icon={<Clock className="h-12 w-12 text-blue-600 group-hover:scale-110 transition-transform duration-300" />}
                 title="24/7 Study Support"
-                description="Study anytime, anywhere with our Rope AI-powered assistant"
+                description="Study anytime, anywhere with our PolyPros-powered assistant"
                 delay={200}
               />
             </div>
@@ -175,7 +171,7 @@ const Index = () => {
               <span className="text-2xl font-bold">PolyPros</span>
             </div>
             <p className="text-blue-200 mb-6">
-              Your trusted Rope AI study companion for polytechnic success
+              Your trusted PolyPros study companion for polytechnic success
             </p>
             
             {/* Contact Information */}
