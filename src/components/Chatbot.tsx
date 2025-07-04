@@ -61,7 +61,13 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       console.log('Sending message to chat function:', messageToSend);
       
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: { message: messageToSend }
+        body: { 
+          message: messageToSend,
+          conversationHistory: messages.slice(-10).map(msg => ({
+            text: msg.text,
+            isBot: msg.isBot
+          }))
+        }
       });
 
       console.log('Function response:', { data, error });
