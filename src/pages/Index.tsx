@@ -44,89 +44,48 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative">
+      <section className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <div className="mb-8 animate-fade-in">
-              <div className="relative inline-block">
-                <Bot className="h-24 w-24 text-blue-600 mx-auto mb-6 animate-float" />
-                <div className="absolute inset-0 bg-blue-600/10 rounded-full animate-ping"></div>
-              </div>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-6 animate-slide-up">
-              Master Polytechnic Subjects with{" "}
-              <span className="text-blue-600 relative inline-block animate-gradient bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent bg-300% animate-shimmer">
-                PolyPros!
-              </span>
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
+              PolyPros Study Assistant
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
-              Your intelligent PolyPros study assistant for all polytechnic subjects. Get instant answers, 
-              explanations, and study help for Engineering, Computer Science, Mathematics, and more.
+            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+              Get instant help with SBTET AP polytechnic subjects
             </p>
-            <div className="animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.8s', animationFillMode: 'forwards' }}>
+            <div className="animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
               <Button
                 onClick={() => setShowChatbot(true)}
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-110 transform group relative overflow-hidden"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
-                <MessageCircle className="mr-2 h-5 w-5 animate-bounce" />
-                Start Learning Now
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Start Chatting
               </Button>
-            </div>
-            
-            {/* Animated scroll indicator */}
-            <div className="mt-16 animate-bounce">
-              <ArrowDown className="h-6 w-6 text-blue-600 mx-auto opacity-60" />
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="text-4xl font-bold text-blue-900 mb-4 animate-slide-up">
-              Why Choose PolyPros?
-            </h2>
-            <p className="text-xl text-gray-600 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Everything you need to excel in your polytechnic studies
-            </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mt-4 rounded animate-width-expand"></div>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 bg-white/80 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-6">
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.1s' }}>
               <FeatureCard
-                icon={<BookOpen className="h-12 w-12 text-blue-600 group-hover:scale-110 transition-transform duration-300" />}
-                title="Subject Expertise"
-                description="Get help with all polytechnic subjects from Mathematics to Engineering"
+                icon={<BookOpen className="h-8 w-8 text-blue-600" />}
+                title="All Subjects"
+                description="Engineering, Computer Science, Mathematics & more"
                 delay={0}
               />
             </div>
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.2s' }}>
               <FeatureCard
-                icon={<MessageCircle className="h-12 w-12 text-blue-600 group-hover:scale-110 transition-transform duration-300" />}
-                title="Instant Answers"
-                description="Ask questions and get detailed explanations instantly"
+                icon={<MessageCircle className="h-8 w-8 text-blue-600" />}
+                title="Instant Help"
+                description="Get answers and explanations instantly"
                 delay={100}
-              />
-            </div>
-            <div className="animate-slide-up-stagger" style={{ animationDelay: '0.3s' }}>
-              <FeatureCard
-                icon={<Clock className="h-12 w-12 text-blue-600 group-hover:scale-110 transition-transform duration-300" />}
-                title="24/7 Study Support"
-                description="Study anytime, anywhere with our PolyPros-powered assistant"
-                delay={200}
-              />
-            </div>
-            <div className="animate-slide-up-stagger" style={{ animationDelay: '0.4s' }}>
-              <FeatureCard
-                icon={<Users className="h-12 w-12 text-blue-600 group-hover:scale-110 transition-transform duration-300" />}
-                title="Made for Students"
-                description="Specifically designed for polytechnic curriculum and students"
-                delay={300}
               />
             </div>
           </div>
@@ -155,34 +114,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full animate-float"></div>
-          <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-white/10 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
-        </div>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h2 className="text-4xl font-bold text-white mb-6 animate-fade-in">
-            Ready to Transform Your Study Experience?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            Join thousands of polytechnic students who are already excelling with PolyPros
-          </p>
-          <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <Button
-              onClick={() => setShowChatbot(true)}
-              size="lg"
-              variant="secondary"
-              className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-full shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-110 transform group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-blue-600/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
-              Start Your Study Journey
-            </Button>
-          </div>
-        </div>
-      </section>
 
       {/* Footer */}
       <footer className="bg-blue-900 text-white py-12 px-4 sm:px-6 lg:px-8 relative">
