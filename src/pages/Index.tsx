@@ -133,6 +133,28 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Support Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-blue-50">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+              💝 Support PolyPros Development
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Help us keep PolyPros free and accessible for all SBTET AP students
+            </p>
+            <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <p className="text-blue-700 font-semibold">
+                Donate via UPI: <span className="font-mono text-lg">8688673113@upi</span>
+              </p>
+            </div>
+            <p className="text-sm text-gray-500">
+              Your support helps us maintain and improve the platform
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10"></div>

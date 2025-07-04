@@ -226,14 +226,14 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                     )}
                   </div>
                   
-                  <div className={`rounded-2xl px-4 py-3 ${
+                  <div className={`rounded-2xl px-4 py-3 transition-all duration-300 animate-fade-in ${
                     message.isBot
                       ? message.isError
                         ? "bg-red-50 text-red-800 border border-red-200"
-                        : "bg-gray-100 text-gray-800"
-                      : "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-800 shadow-sm hover:shadow-md"
+                      : "bg-blue-600 text-white shadow-sm"
                   }`}>
-                    <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    <div className="text-sm leading-relaxed whitespace-pre-wrap animate-scale-in">
                       {message.text}
                     </div>
                     <div className={`text-xs mt-2 ${
@@ -254,16 +254,16 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             ))}
             
             {isTyping && (
-              <div className="flex justify-start">
+              <div className="flex justify-start animate-fade-in">
                 <div className="flex items-start space-x-3 max-w-[85%]">
-                  <div className="shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center animate-pulse">
                     <Bot className="h-4 w-4 text-blue-600" />
                   </div>
-                  <div className="rounded-2xl px-4 py-3 bg-gray-100">
+                  <div className="rounded-2xl px-4 py-3 bg-gray-100 shadow-sm animate-scale-in">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                     </div>
                   </div>
                 </div>
@@ -276,14 +276,6 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         {/* Input Area */}
         <div className="border-t bg-white p-4 shrink-0 pb-safe">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-center">
-              <p className="text-xs text-blue-700 mb-1">
-                💝 Support PolyPros Development
-              </p>
-              <p className="text-xs text-blue-600">
-                Donate via UPI: <span className="font-mono font-semibold">8688673113@upi</span>
-              </p>
-            </div>
             <div className="flex space-x-3 mb-2">
               <Input
                 value={inputValue}
