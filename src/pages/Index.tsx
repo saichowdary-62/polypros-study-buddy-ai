@@ -48,6 +48,10 @@ const Index = () => {
                 About
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
+              <Link to="/monitor" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
+                Monitor
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
+              </Link>
             </div>
           </div>
         </div>
