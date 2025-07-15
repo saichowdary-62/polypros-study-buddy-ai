@@ -1,9 +1,74 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Activity, Shield, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Activity, Shield, Zap, Lock } from "lucide-react";
 
 const WebsiteMonitor = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  
+  useEffect(() => {
+    // Check if user is already authenticated
+    const authStatus = localStorage.getItem("monitor_auth");
+    if (authStatus === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === "amar") {
+      setIsAuthenticated(true);
+      localStorage.setItem("monitor_auth", "true");
+      setError("");
+    } else {
+      setError("Incorrect password");
+      setPassword("");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("monitor_auth");
+    setPassword("");
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md border-border/50 shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+              <Lock className="h-6 w-6 text-primary" />
+              Secure Access
+            </CardTitle>
+            <p className="text-muted-foreground">Enter password to access monitor</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full"
+                />
+                {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
+              </div>
+              <Button type="submit" className="w-full">
+                Access Monitor
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
   const monitorData = {
     "Account_ID": "40db6d3fe352fe339efc6a256acab389",
     "API_Status": {
@@ -24,11 +89,16 @@ const WebsiteMonitor = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Website Monitor
-          </h1>
-          <p className="text-muted-foreground">Real-time API monitoring and usage statistics</p>
+        <div className="flex justify-between items-center">
+          <div className="text-center space-y-2 flex-1">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Website Monitor
+            </h1>
+            <p className="text-muted-foreground">Real-time API monitoring and usage statistics</p>
+          </div>
+          <Button variant="outline" onClick={handleLogout} className="ml-4">
+            Logout
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
