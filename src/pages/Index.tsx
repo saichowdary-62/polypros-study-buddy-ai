@@ -104,7 +104,7 @@ const Index = () => {
             </p>
             <div className="bg-blue-50 rounded-lg p-4 mb-6">
               <p className="text-blue-700 font-semibold">
-                Donate via UPI: <span className="font-mono text-lg">8688673113@upi</span>
+                Donate via UPI: <span className="font-mono text-lg">918688673113@upi</span>
               </p>
             </div>
             <p className="text-sm text-gray-500">
