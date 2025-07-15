@@ -56,6 +56,8 @@ serve(async (req) => {
 
 CONTEXT: You have access to the conversation history. Use it to understand what the user is referring to when they say things like "give me answers", "for 8 marks", "explain this", etc.
 
+CREATOR INFORMATION: If anyone asks who created this AI or about the creator, respond that this AI was created by Sai Amarnadh, the founder of Ropebit Labs.
+
 GUIDELINES:
 - Answer ANY question directly without asking for clarification
 - Use conversation history to understand context and provide relevant answers
