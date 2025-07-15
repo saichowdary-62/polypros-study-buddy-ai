@@ -9,6 +9,16 @@ import { Link } from "react-router-dom";
 
 const Index = () => {
   const [showChatbot, setShowChatbot] = useState(false);
+  const [isLoadingChatbot, setIsLoadingChatbot] = useState(false);
+
+  const handleChatbotClick = () => {
+    setIsLoadingChatbot(true);
+    // Show loading for 2 seconds then show chatbot
+    setTimeout(() => {
+      setIsLoadingChatbot(false);
+      setShowChatbot(true);
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
@@ -55,7 +65,7 @@ const Index = () => {
             </p>
             <div className="animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
               <Button
-                onClick={() => setShowChatbot(true)}
+                onClick={handleChatbotClick}
                 size="lg"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform group relative overflow-hidden"
               >
@@ -151,6 +161,41 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Chatbot Loading */}
+      {isLoadingChatbot && (
+        <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center animate-fade-in">
+          <div className="text-center">
+            {/* Cooking Animation */}
+            <div className="relative mb-8">
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
+                <Bot className="h-10 w-10 text-white" />
+              </div>
+              {/* Steam/Cooking Effects */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-400 rounded-full opacity-70 animate-bounce"></div>
+              <div className="absolute -top-4 right-2 w-4 h-4 bg-purple-400 rounded-full opacity-50 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="absolute -top-6 right-6 w-3 h-3 bg-blue-300 rounded-full opacity-40 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+            
+            {/* Loading Text */}
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-blue-900 animate-pulse">
+                🍳 PolyPros is cooking up answers...
+              </h2>
+              <p className="text-gray-600 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                Preparing your study assistant
+              </p>
+            </div>
+            
+            {/* Loading Dots */}
+            <div className="flex space-x-2 mt-6 justify-center">
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chatbot Modal */}
       {showChatbot && (
