@@ -111,7 +111,7 @@ const Index = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
             <h3 className="text-2xl font-bold text-blue-900 mb-4">
-              💝 Support PolyPros hari
+              💝 Support PolyPros Development
             </h3>
             <p className="text-gray-600 mb-6">
               Help us keep PolyPros free and accessible for all SBTET AP students
