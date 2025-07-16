@@ -4,9 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Activity, Shield, Zap, Lock } from "lucide-react";
+import { Activity, Shield, Zap, Lock, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const WebsiteMonitor = () => {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -90,13 +92,23 @@ const WebsiteMonitor = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+          
           <div className="text-center space-y-2 flex-1">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               Website Monitor
             </h1>
             <p className="text-muted-foreground">Real-time API monitoring and usage statistics</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="ml-4">
+          
+          <Button variant="outline" onClick={handleLogout}>
             Logout
           </Button>
         </div>

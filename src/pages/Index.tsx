@@ -218,46 +218,20 @@ const Index = () => {
 
       {/* Browser Recommendation Popup */}
       <Dialog open={showBrowserPopup} onOpenChange={setShowBrowserPopup}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Chrome className="h-6 w-6 text-blue-600" />
-              Best Experience Tip
+            <DialogTitle className="flex items-center gap-2">
+              <Chrome className="h-5 w-5 text-blue-600" />
+              Better Experience
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="text-center space-y-3">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <Bot className="h-8 w-8 text-white" />
-              </div>
-              <p className="text-gray-600">
-                For the best chatting experience with PolyPros AI, we recommend using:
-              </p>
-            </div>
-            
-            <div className="grid gap-3">
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <Chrome className="h-5 w-5 text-blue-600" />
-                <span className="font-medium text-blue-900">Google Chrome</span>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="w-5 h-5 bg-gradient-to-r from-blue-400 to-purple-500 rounded-sm"></div>
-                <span className="font-medium text-gray-700">Microsoft Edge</span>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="w-5 h-5 bg-orange-500 rounded-sm"></div>
-                <span className="font-medium text-gray-700">Firefox</span>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-4">
-                Modern browsers provide better AI chat performance and features.
-              </p>
-              <Button onClick={handleCloseBrowserPopup} className="w-full">
-                Got it, thanks!
-              </Button>
-            </div>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              For best AI chat performance, use Chrome or modern browsers.
+            </p>
+            <Button onClick={handleCloseBrowserPopup} className="w-full" size="sm">
+              Got it!
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
