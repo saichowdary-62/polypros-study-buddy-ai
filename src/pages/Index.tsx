@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown, Chrome, X } from "lucide-react";
 import { Chatbot } from "@/components/Chatbot";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Link } from "react-router-dom";
@@ -10,6 +11,20 @@ import { Link } from "react-router-dom";
 const Index = () => {
   const [showChatbot, setShowChatbot] = useState(false);
   const [isLoadingChatbot, setIsLoadingChatbot] = useState(false);
+  const [showBrowserPopup, setShowBrowserPopup] = useState(false);
+
+  useEffect(() => {
+    // Show browser recommendation popup if not shown before
+    const hasSeenPopup = localStorage.getItem("browser_popup_seen");
+    if (!hasSeenPopup) {
+      setShowBrowserPopup(true);
+    }
+  }, []);
+
+  const handleCloseBrowserPopup = () => {
+    setShowBrowserPopup(false);
+    localStorage.setItem("browser_popup_seen", "true");
+  };
 
   const handleChatbotClick = () => {
     setIsLoadingChatbot(true);
@@ -200,6 +215,52 @@ const Index = () => {
           </div>
         </div>
       )}
+
+      {/* Browser Recommendation Popup */}
+      <Dialog open={showBrowserPopup} onOpenChange={setShowBrowserPopup}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Chrome className="h-6 w-6 text-blue-600" />
+              Best Experience Tip
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="text-center space-y-3">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <Bot className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-gray-600">
+                For the best chatting experience with PolyPros AI, we recommend using:
+              </p>
+            </div>
+            
+            <div className="grid gap-3">
+              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <Chrome className="h-5 w-5 text-blue-600" />
+                <span className="font-medium text-blue-900">Google Chrome</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="w-5 h-5 bg-gradient-to-r from-blue-400 to-purple-500 rounded-sm"></div>
+                <span className="font-medium text-gray-700">Microsoft Edge</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="w-5 h-5 bg-orange-500 rounded-sm"></div>
+                <span className="font-medium text-gray-700">Firefox</span>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <p className="text-sm text-gray-500 mb-4">
+                Modern browsers provide better AI chat performance and features.
+              </p>
+              <Button onClick={handleCloseBrowserPopup} className="w-full">
+                Got it, thanks!
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Chatbot Modal */}
       {showChatbot && (
