@@ -59,12 +59,16 @@ const Index = () => {
                 Home
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
+              <Link to="/question-papers" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
+                Papers
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
+              </Link>
               <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
                 About
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link to="/monitor" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
-                Monitor
+              <Link to="/admin" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
+                Admin
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
             </div>
@@ -102,12 +106,14 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.1s' }}>
-              <FeatureCard
-                icon={<BookOpen className="h-8 w-8 text-blue-600" />}
-                title="All Subjects"
-                description="Engineering, Computer Science, Mathematics & more"
-                delay={0}
-              />
+              <Link to="/question-papers" className="block">
+                <FeatureCard
+                  icon={<BookOpen className="h-8 w-8 text-blue-600" />}
+                  title="All Subjects"
+                  description="Previous question papers for all subjects"
+                  delay={0}
+                />
+              </Link>
             </div>
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.2s' }}>
               <FeatureCard
