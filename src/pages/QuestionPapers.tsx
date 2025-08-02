@@ -192,28 +192,49 @@ const QuestionPapers = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Button>
-          
-          <div className="flex-1 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-20 h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-16 h-16 bg-purple-200 rounded-full opacity-30 animate-bounce" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-40 left-20 w-24 h-24 bg-blue-300 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-60 left-1/3 w-12 h-12 bg-purple-300 rounded-full opacity-25 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute bottom-60 right-1/4 w-18 h-18 bg-blue-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1.5s' }}></div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="h-8 w-8 text-blue-600 animate-bounce" />
+              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
+            </div>
+            <div className="flex space-x-8">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
               Previous Question Papers
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
               Find and download question papers for SBTET AP diploma courses
             </p>
           </div>
-        </div>
 
         {/* Filters */}
         <Card>
@@ -361,6 +382,7 @@ const QuestionPapers = () => {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
     </div>
   );
