@@ -475,9 +475,9 @@ const AdminPanel = () => {
                           <TableRow key={regulation.id} className="hover:bg-blue-50/50 transition-colors">
                             <TableCell className="font-medium">{regulation.code}</TableCell>
                             <TableCell>{regulation.name}</TableCell>
-                            <TableCell className="max-w-xs truncate">{regulation.description}</TableCell>
+                            <TableCell>{regulation.description || 'No description'}</TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -485,16 +485,15 @@ const AdminPanel = () => {
                                     setEditingItem(regulation);
                                     setDialogOpen(true);
                                   }}
-                                  className="hover:bg-blue-50"
                                 >
-                                  <Edit className="h-3 w-3" />
+                                  <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => handleDelete(regulation.id, 'regulations')}
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -544,13 +543,13 @@ const AdminPanel = () => {
                             <Input
                               id="sem-name"
                               defaultValue={editingItem?.name || ''}
-                              placeholder="e.g., 1st Semester"
+                              placeholder="e.g., First Semester"
                               className="mt-1"
                             />
                           </div>
                           <Button
                             onClick={() => {
-                              const number = parseInt((document.getElementById('sem-number') as HTMLInputElement).value);
+                              const number = (document.getElementById('sem-number') as HTMLInputElement).value;
                               const name = (document.getElementById('sem-name') as HTMLInputElement).value;
                               
                               if (!number || !name) {
@@ -558,7 +557,7 @@ const AdminPanel = () => {
                                 return;
                               }
                               
-                              handleSave({ number, name }, 'semesters');
+                              handleSave({ number: parseInt(number), name }, 'semesters');
                             }}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                           >
@@ -584,7 +583,7 @@ const AdminPanel = () => {
                             <TableCell className="font-medium">{semester.number}</TableCell>
                             <TableCell>{semester.name}</TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -592,16 +591,15 @@ const AdminPanel = () => {
                                     setEditingItem(semester);
                                     setDialogOpen(true);
                                   }}
-                                  className="hover:bg-blue-50"
                                 >
-                                  <Edit className="h-3 w-3" />
+                                  <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => handleDelete(semester.id, 'semesters')}
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -650,7 +648,7 @@ const AdminPanel = () => {
                             <Input
                               id="branch-name"
                               defaultValue={editingItem?.name || ''}
-                              placeholder="e.g., Computer Engineering"
+                              placeholder="e.g., Computer Science and Engineering"
                               className="mt-1"
                             />
                           </div>
@@ -700,9 +698,9 @@ const AdminPanel = () => {
                           <TableRow key={branch.id} className="hover:bg-blue-50/50 transition-colors">
                             <TableCell className="font-medium">{branch.code}</TableCell>
                             <TableCell>{branch.name}</TableCell>
-                            <TableCell className="max-w-xs truncate">{branch.description}</TableCell>
+                            <TableCell>{branch.description || 'No description'}</TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -710,16 +708,15 @@ const AdminPanel = () => {
                                     setEditingItem(branch);
                                     setDialogOpen(true);
                                   }}
-                                  className="hover:bg-blue-50"
                                 >
-                                  <Edit className="h-3 w-3" />
+                                  <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => handleDelete(branch.id, 'branches')}
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -754,75 +751,67 @@ const AdminPanel = () => {
                           </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="subj-regulation">Regulation *</Label>
-                              <Select defaultValue={editingItem?.regulation_id || ""}>
-                                <SelectTrigger id="subj-regulation">
-                                  <SelectValue placeholder="Select regulation" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {regulations.map((reg) => (
-                                    <SelectItem key={reg.id} value={reg.id}>
-                                      {reg.code} - {reg.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="subj-semester">Semester *</Label>
-                              <Select defaultValue={editingItem?.semester_id || ""}>
-                                <SelectTrigger id="subj-semester">
-                                  <SelectValue placeholder="Select semester" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {semesters.map((sem) => (
-                                    <SelectItem key={sem.id} value={sem.id}>
-                                      {sem.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+                          <div>
+                            <Label htmlFor="subject-code">Code *</Label>
+                            <Input
+                              id="subject-code"
+                              defaultValue={editingItem?.code || ''}
+                              placeholder="e.g., 101"
+                              className="mt-1"
+                            />
                           </div>
                           <div>
-                            <Label htmlFor="subj-branch">Branch *</Label>
-                            <Select defaultValue={editingItem?.branch_id || ""}>
-                              <SelectTrigger id="subj-branch">
-                                <SelectValue placeholder="Select branch" />
+                            <Label htmlFor="subject-name">Name *</Label>
+                            <Input
+                              id="subject-name"
+                              defaultValue={editingItem?.name || ''}
+                              placeholder="e.g., Mathematics"
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="subject-regulation">Regulation *</Label>
+                            <Select value={editingItem?.regulation_id || ''} onValueChange={(value) => setEditingItem({...editingItem, regulation_id: value})}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select regulation" />
                               </SelectTrigger>
                               <SelectContent>
-                                {branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.code} - {branch.name}
-                                  </SelectItem>
+                                {regulations.map((reg) => (
+                                  <SelectItem key={reg.id} value={reg.id}>{reg.code} - {reg.name}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="subj-code">Subject Code *</Label>
-                            <Input
-                              id="subj-code"
-                              defaultValue={editingItem?.code || ''}
-                              placeholder="e.g., CM101"
-                              className="mt-1"
-                            />
+                            <Label htmlFor="subject-semester">Semester *</Label>
+                            <Select value={editingItem?.semester_id || ''} onValueChange={(value) => setEditingItem({...editingItem, semester_id: value})}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select semester" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {semesters.map((sem) => (
+                                  <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div>
-                            <Label htmlFor="subj-name">Subject Name *</Label>
-                            <Input
-                              id="subj-name"
-                              defaultValue={editingItem?.name || ''}
-                              placeholder="e.g., Programming in C"
-                              className="mt-1"
-                            />
+                            <Label htmlFor="subject-branch">Branch *</Label>
+                            <Select value={editingItem?.branch_id || ''} onValueChange={(value) => setEditingItem({...editingItem, branch_id: value})}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select branch" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {branches.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>{branch.code} - {branch.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div>
-                            <Label htmlFor="subj-description">Description</Label>
+                            <Label htmlFor="subject-description">Description</Label>
                             <Textarea
-                              id="subj-description"
+                              id="subject-description"
                               defaultValue={editingItem?.description || ''}
                               placeholder="Optional description"
                               className="mt-1"
@@ -830,19 +819,23 @@ const AdminPanel = () => {
                           </div>
                           <Button
                             onClick={() => {
-                              const regulation_id = (document.querySelector('#subj-regulation [data-state="checked"]') as any)?.getAttribute('data-value') || editingItem?.regulation_id;
-                              const semester_id = (document.querySelector('#subj-semester [data-state="checked"]') as any)?.getAttribute('data-value') || editingItem?.semester_id;
-                              const branch_id = (document.querySelector('#subj-branch [data-state="checked"]') as any)?.getAttribute('data-value') || editingItem?.branch_id;
-                              const code = (document.getElementById('subj-code') as HTMLInputElement).value;
-                              const name = (document.getElementById('subj-name') as HTMLInputElement).value;
-                              const description = (document.getElementById('subj-description') as HTMLTextAreaElement).value;
+                              const code = (document.getElementById('subject-code') as HTMLInputElement).value;
+                              const name = (document.getElementById('subject-name') as HTMLInputElement).value;
+                              const description = (document.getElementById('subject-description') as HTMLTextAreaElement).value;
                               
-                              if (!regulation_id || !semester_id || !branch_id || !code || !name) {
-                                toast({ title: "Missing fields", description: "All fields except description are required", variant: "destructive" });
+                              if (!code || !name || !editingItem?.regulation_id || !editingItem?.semester_id || !editingItem?.branch_id) {
+                                toast({ title: "Missing fields", description: "All fields are required", variant: "destructive" });
                                 return;
                               }
                               
-                              handleSave({ regulation_id, semester_id, branch_id, code, name, description }, 'subjects');
+                              handleSave({ 
+                                code, 
+                                name, 
+                                description, 
+                                regulation_id: editingItem.regulation_id,
+                                semester_id: editingItem.semester_id,
+                                branch_id: editingItem.branch_id
+                              }, 'subjects');
                             }}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                           >
@@ -874,7 +867,7 @@ const AdminPanel = () => {
                             <TableCell>{subject.semesters?.name}</TableCell>
                             <TableCell>{subject.branches?.code}</TableCell>
                             <TableCell>
-                              <div className="flex gap-2">
+                              <div className="flex items-center gap-2">
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -882,16 +875,15 @@ const AdminPanel = () => {
                                     setEditingItem(subject);
                                     setDialogOpen(true);
                                   }}
-                                  className="hover:bg-blue-50"
                                 >
-                                  <Edit className="h-3 w-3" />
+                                  <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => handleDelete(subject.id, 'subjects')}
                                 >
-                                  <Trash2 className="h-3 w-3" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -908,7 +900,10 @@ const AdminPanel = () => {
                     <h3 className="text-xl font-semibold text-blue-900">Question Papers</h3>
                     <Dialog open={paperDialogOpen} onOpenChange={setPaperDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                        <Button
+                          onClick={() => setPaperDialogOpen(true)}
+                          className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                        >
                           <Upload className="h-4 w-4" />
                           Upload Paper
                         </Button>
@@ -918,180 +913,175 @@ const AdminPanel = () => {
                           <DialogTitle className="text-blue-900">Upload Question Paper</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label>Regulation *</Label>
-                              <Select value={paperForm.regulation_id} onValueChange={(value) => setPaperForm({...paperForm, regulation_id: value, semester_id: "", branch_id: "", subject_id: ""})}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select regulation" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {regulations.map((reg) => (
-                                    <SelectItem key={reg.id} value={reg.id}>
-                                      {reg.code} - {reg.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label>Semester *</Label>
-                              <Select value={paperForm.semester_id} onValueChange={(value) => setPaperForm({...paperForm, semester_id: value, branch_id: "", subject_id: ""})}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select semester" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {semesters.map((sem) => (
-                                    <SelectItem key={sem.id} value={sem.id}>
-                                      {sem.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+                          <div>
+                            <Label>Regulation *</Label>
+                            <Select value={paperForm.regulation_id} onValueChange={(value) => setPaperForm({...paperForm, regulation_id: value, semester_id: '', branch_id: '', subject_id: ''})}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select regulation" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {regulations.map((reg) => (
+                                  <SelectItem key={reg.id} value={reg.id}>{reg.code} - {reg.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
+                          
+                          <div>
+                            <Label>Semester *</Label>
+                            <Select value={paperForm.semester_id} onValueChange={(value) => setPaperForm({...paperForm, semester_id: value, branch_id: '', subject_id: ''})}>
+                              <SelectTrigger className="mt-1">
+                                <SelectValue placeholder="Select semester" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {semesters.map((sem) => (
+                                  <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
                           <div>
                             <Label>Branch *</Label>
-                            <Select value={paperForm.branch_id} onValueChange={(value) => setPaperForm({...paperForm, branch_id: value, subject_id: ""})}>
-                              <SelectTrigger>
+                            <Select value={paperForm.branch_id} onValueChange={(value) => setPaperForm({...paperForm, branch_id: value, subject_id: ''})}>
+                              <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select branch" />
                               </SelectTrigger>
                               <SelectContent>
                                 {branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.code} - {branch.name}
-                                  </SelectItem>
+                                  <SelectItem key={branch.id} value={branch.id}>{branch.code} - {branch.name}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
+                          
                           <div>
                             <Label>Subject *</Label>
                             <Select value={paperForm.subject_id} onValueChange={(value) => setPaperForm({...paperForm, subject_id: value})}>
-                              <SelectTrigger>
+                              <SelectTrigger className="mt-1">
                                 <SelectValue placeholder="Select subject" />
                               </SelectTrigger>
                               <SelectContent>
                                 {getFilteredSubjects().map((subject) => (
-                                  <SelectItem key={subject.id} value={subject.id}>
-                                    {subject.code} - {subject.name}
-                                  </SelectItem>
+                                  <SelectItem key={subject.id} value={subject.id}>{subject.code} - {subject.name}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
+
                           <div>
-                            <Label>Title *</Label>
+                            <Label htmlFor="title">Title *</Label>
                             <Input
+                              id="title"
                               value={paperForm.title}
                               onChange={(e) => setPaperForm({...paperForm, title: e.target.value})}
-                              placeholder="e.g., Mid-term Examination 2023"
+                              placeholder="e.g., Mid-Term Exam"
+                              className="mt-1"
                             />
                           </div>
-                          <div className="grid grid-cols-3 gap-2">
+                          
+                          <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label>Year</Label>
+                              <Label htmlFor="year">Year</Label>
                               <Input
+                                id="year"
                                 type="number"
                                 value={paperForm.year}
                                 onChange={(e) => setPaperForm({...paperForm, year: e.target.value})}
-                                placeholder="2023"
+                                placeholder="2024"
+                                className="mt-1"
                               />
                             </div>
                             <div>
-                              <Label>Month</Label>
+                              <Label htmlFor="month">Month</Label>
                               <Input
+                                id="month"
                                 value={paperForm.month}
                                 onChange={(e) => setPaperForm({...paperForm, month: e.target.value})}
-                                placeholder="March"
+                                placeholder="January"
+                                className="mt-1"
                               />
                             </div>
-                            <div>
-                              <Label>Exam Type</Label>
-                              <Select value={paperForm.exam_type} onValueChange={(value) => setPaperForm({...paperForm, exam_type: value})}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Mid-term">Mid-term</SelectItem>
-                                  <SelectItem value="End-term">End-term</SelectItem>
-                                  <SelectItem value="Supplementary">Supplementary</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
                           </div>
+                          
                           <div>
-                            <Label>Select PDF File *</Label>
+                            <Label htmlFor="exam_type">Exam Type</Label>
                             <Input
+                              id="exam_type"
+                              value={paperForm.exam_type}
+                              onChange={(e) => setPaperForm({...paperForm, exam_type: e.target.value})}
+                              placeholder="Mid-Term/Final/Regular"
+                              className="mt-1"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="file">PDF File *</Label>
+                            <Input
+                              id="file"
                               type="file"
                               accept=".pdf"
                               onChange={(e) => setPaperForm({...paperForm, file: e.target.files?.[0] || null})}
                               className="mt-1"
                             />
                           </div>
+
                           <Button
                             onClick={handleFileUpload}
-                            disabled={uploading || !paperForm.regulation_id || !paperForm.semester_id || !paperForm.branch_id || !paperForm.subject_id}
+                            disabled={uploading}
                             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                           >
-                            {uploading ? "Uploading..." : "Upload Paper"}
+                            {uploading ? 'Uploading...' : 'Upload Question Paper'}
                           </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                   </div>
 
-                  <div className="grid gap-4">
-                    {questionPapers.map((paper) => (
-                      <div
-                        key={paper.id}
-                        className="flex items-center justify-between p-4 border rounded-lg bg-white hover:bg-blue-50/50 transition-colors shadow-sm"
-                      >
-                        <div className="flex-1">
-                          <h4 className="font-medium text-blue-900">{paper.title}</h4>
-                          <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-600">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {paper.month} {paper.year}
-                            </span>
-                            {paper.exam_type && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs">
-                                {paper.exam_type}
-                              </span>
-                            )}
-                            <span className="text-xs text-gray-500">
-                              {paper.subjects?.code} - {paper.subjects?.name}
-                            </span>
-                            {paper.file_size && (
-                              <span className="text-xs">{formatFileSize(paper.file_size)}</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDownload(paper)}
-                            className="hover:bg-blue-50"
-                          >
-                            <Download className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(paper.id, 'question_papers')}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                    {questionPapers.length === 0 && (
-                      <div className="text-center py-8 text-gray-500">
-                        <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No question papers uploaded yet.</p>
-                      </div>
-                    )}
+                  <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-blue-50">
+                          <TableHead className="font-semibold text-blue-900">Title</TableHead>
+                          <TableHead className="font-semibold text-blue-900">Subject</TableHead>
+                          <TableHead className="font-semibold text-blue-900">Year</TableHead>
+                          <TableHead className="font-semibold text-blue-900">Month</TableHead>
+                          <TableHead className="font-semibold text-blue-900">Exam Type</TableHead>
+                          <TableHead className="font-semibold text-blue-900">File Size</TableHead>
+                          <TableHead className="font-semibold text-blue-900">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {questionPapers.map((paper) => (
+                          <TableRow key={paper.id} className="hover:bg-blue-50/50 transition-colors">
+                            <TableCell className="font-medium">{paper.title}</TableCell>
+                            <TableCell>{paper.subjects?.code}</TableCell>
+                            <TableCell>{paper.year || 'N/A'}</TableCell>
+                            <TableCell>{paper.month || 'N/A'}</TableCell>
+                            <TableCell>{paper.exam_type || 'N/A'}</TableCell>
+                            <TableCell>{paper.file_size ? formatFileSize(paper.file_size) : 'N/A'}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleDownload(paper)}
+                                >
+                                  <Download className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDelete(paper.id, 'question_papers')}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
                 </TabsContent>
               </Tabs>
