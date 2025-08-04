@@ -257,16 +257,20 @@ const AdminPanel = () => {
     setUploading(true);
 
     try {
+      console.log('Starting upload process...');
+      
       // Upload file to Supabase Storage
       const fileExt = paperForm.file.name.split('.').pop();
       const fileName = `${Date.now()}_${paperForm.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `papers/${fileName}`;
 
+      console.log('Uploading file to storage:', filePath);
       const { error: uploadError } = await supabase.storage
         .from('question-papers')
         .upload(filePath, paperForm.file);
 
       if (uploadError) {
+        console.error('Storage upload error:', uploadError);
         console.error('Upload error:', uploadError);
         toast({
           title: "Upload Error",
@@ -277,11 +281,15 @@ const AdminPanel = () => {
         return;
       }
 
+      console.log('File uploaded successfully:', uploadData);
+      
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('question-papers')
         .getPublicUrl(filePath);
 
+      console.log('Public URL generated:', publicUrl);
+      
       // Save question paper data
       const questionPaperData = {
         subject_id: paperForm.subject_id,
@@ -294,6 +302,7 @@ const AdminPanel = () => {
         file_size: paperForm.file.size,
       };
 
+      console.log('Saving metadata to database...');
       const { data, error } = await supabase
         .from('question_papers')
         .insert([questionPaperData])
@@ -305,11 +314,13 @@ const AdminPanel = () => {
           title: "Database Error",
           description: error.message,
           variant: "destructive",
+        console.error('Database insert error:', dbError);
         });
         setUploading(false);
         return;
       }
 
+      console.log('Question paper uploaded successfully');
       toast({
         title: "Success",
         description: "Question paper uploaded successfully",
@@ -332,10 +343,11 @@ const AdminPanel = () => {
       // Reload data
       loadQuestionPapers();
     } catch (error) {
+      console.error('Upload error details:', error);
       console.error('Unexpected error:', error);
       toast({
         title: "Error",
-        description: "Failed to upload question paper",
+        description: `Error: ${error.message || "An error occurred during upload"}. Please check console for details.`,
         variant: "destructive",
       });
     } finally {
