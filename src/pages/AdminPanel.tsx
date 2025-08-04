@@ -141,12 +141,13 @@ const AdminPanel = () => {
       .from('subjects')
       .select(`
         *,
-        regulations(code, name),
-        semesters(name),
-        branches(code, name)
+        regulations!subjects_regulation_id_fkey(code, name),
+        semesters!subjects_semester_id_fkey(name),
+        branches!subjects_branch_id_fkey(code, name)
       `)
       .order('code');
     if (error) {
+      console.error('Error loading subjects:', error);
       toast({ title: "Error loading subjects", description: error.message, variant: "destructive" });
     } else {
       setSubjects(data || []);
@@ -158,10 +159,11 @@ const AdminPanel = () => {
       .from('question_papers')
       .select(`
         *,
-        subjects(code, name)
+        subjects!question_papers_subject_id_fkey(code, name)
       `)
       .order('created_at', { ascending: false });
     if (error) {
+      console.error('Error loading question papers:', error);
       toast({ title: "Error loading question papers", description: error.message, variant: "destructive" });
     } else {
       setQuestionPapers(data || []);
@@ -240,12 +242,22 @@ const AdminPanel = () => {
       return;
     }
 
+    // Validate file type
+    if (!paperForm.file.name.toLowerCase().endsWith('.pdf')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select a PDF file",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
 
     try {
       // Upload file to Supabase Storage
       const fileExt = paperForm.file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}_${paperForm.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `papers/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -253,6 +265,7 @@ const AdminPanel = () => {
         .upload(filePath, paperForm.file);
 
       if (uploadError) {
+        console.error('Upload error:', uploadError);
         toast({
           title: "Upload Error",
           description: uploadError.message,
@@ -279,7 +292,26 @@ const AdminPanel = () => {
         file_size: paperForm.file.size,
       };
 
-      await handleSave(questionPaperData, 'question_papers');
+      const { data, error } = await supabase
+        .from('question_papers')
+        .insert([questionPaperData])
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        toast({
+          title: "Database Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        setUploading(false);
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: "Question paper uploaded successfully",
+      });
       
       // Reset form
       setPaperForm({
@@ -294,7 +326,11 @@ const AdminPanel = () => {
         file: null
       });
       setPaperDialogOpen(false);
+      
+      // Reload data
+      loadQuestionPapers();
     } catch (error) {
+      console.error('Unexpected error:', error);
       toast({
         title: "Error",
         description: "Failed to upload question paper",
@@ -1039,49 +1075,61 @@ const AdminPanel = () => {
                   </div>
 
                   <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-blue-50">
-                          <TableHead className="font-semibold text-blue-900">Title</TableHead>
-                          <TableHead className="font-semibold text-blue-900">Subject</TableHead>
-                          <TableHead className="font-semibold text-blue-900">Year</TableHead>
-                          <TableHead className="font-semibold text-blue-900">Month</TableHead>
-                          <TableHead className="font-semibold text-blue-900">Exam Type</TableHead>
-                          <TableHead className="font-semibold text-blue-900">File Size</TableHead>
-                          <TableHead className="font-semibold text-blue-900">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {questionPapers.map((paper) => (
-                          <TableRow key={paper.id} className="hover:bg-blue-50/50 transition-colors">
-                            <TableCell className="font-medium">{paper.title}</TableCell>
-                            <TableCell>{paper.subjects?.code}</TableCell>
-                            <TableCell>{paper.year || 'N/A'}</TableCell>
-                            <TableCell>{paper.month || 'N/A'}</TableCell>
-                            <TableCell>{paper.exam_type || 'N/A'}</TableCell>
-                            <TableCell>{paper.file_size ? formatFileSize(paper.file_size) : 'N/A'}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleDownload(paper)}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleDelete(paper.id, 'question_papers')}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-blue-50">
+                            <TableHead className="font-semibold text-blue-900 min-w-[150px]">Title</TableHead>
+                            <TableHead className="font-semibold text-blue-900 min-w-[120px]">Subject</TableHead>
+                            <TableHead className="font-semibold text-blue-900 min-w-[80px]">Year</TableHead>
+                            <TableHead className="font-semibold text-blue-900 min-w-[80px]">Month</TableHead>
+                            <TableHead className="font-semibold text-blue-900 min-w-[100px]">Exam Type</TableHead>
+                            <TableHead className="font-semibold text-blue-900 min-w-[80px]">File Size</TableHead>
+                            <TableHead className="font-semibold text-blue-900 min-w-[120px]">Actions</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {questionPapers.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                                No question papers uploaded yet. Upload your first paper to get started!
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            questionPapers.map((paper) => (
+                              <TableRow key={paper.id} className="hover:bg-blue-50/50 transition-colors">
+                                <TableCell className="font-medium">{paper.title}</TableCell>
+                                <TableCell>{paper.subjects?.code || 'N/A'}</TableCell>
+                                <TableCell>{paper.year || 'N/A'}</TableCell>
+                                <TableCell>{paper.month || 'N/A'}</TableCell>
+                                <TableCell>{paper.exam_type || 'N/A'}</TableCell>
+                                <TableCell>{paper.file_size ? formatFileSize(paper.file_size) : 'N/A'}</TableCell>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDownload(paper)}
+                                      title="Download PDF"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      onClick={() => handleDelete(paper.id, 'question_papers')}
+                                      title="Delete Paper"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
                   </div>
                 </TabsContent>
               </Tabs>
