@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Edit, Trash2, Upload, FileText, Settings, Shield, Bot, Calendar, Download } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Upload, FileText, Settings, Shield, Bot, Calendar, Download, Menu, X } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -80,6 +81,7 @@ const AdminPanel = () => {
   
   // Question paper form states
   const [paperDialogOpen, setPaperDialogOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [paperForm, setPaperForm] = useState({
     regulation_id: "",
     semester_id: "",
@@ -378,16 +380,96 @@ const AdminPanel = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2 animate-fade-in">
               <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
-              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros Admin</span>
+              <span className="text-xl md:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros Admin</span>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+            </div>
+
+            {/* Mobile Menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="outline" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Admin Menu
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  <Button 
+                    onClick={() => {
+                      navigate('/');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 justify-start"
+                    variant="outline"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Home
+                  </Button>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700">Quick Navigation</Label>
+                    <div className="grid grid-cols-1 gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => { setActiveTab("regulations"); setMobileMenuOpen(false); }}
+                        className="justify-start"
+                      >
+                        📋 Regulations
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => { setActiveTab("semesters"); setMobileMenuOpen(false); }}
+                        className="justify-start"
+                      >
+                        📚 Semesters
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => { setActiveTab("branches"); setMobileMenuOpen(false); }}
+                        className="justify-start"
+                      >
+                        🌿 Branches
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => { setActiveTab("subjects"); setMobileMenuOpen(false); }}
+                        className="justify-start"
+                      >
+                        📖 Subjects
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => { setActiveTab("papers"); setMobileMenuOpen(false); }}
+                        className="justify-start"
+                      >
+                        📄 Question Papers
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </nav>
@@ -415,12 +497,12 @@ const AdminPanel = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-5 bg-blue-50 rounded-lg p-1">
-                  <TabsTrigger value="regulations" className="data-[state=active]:bg-white data-[state=active]:text-blue-600">Regulations</TabsTrigger>
-                  <TabsTrigger value="semesters" className="data-[state=active]:bg-white data-[state=active]:text-blue-600">Semesters</TabsTrigger>
-                  <TabsTrigger value="branches" className="data-[state=active]:bg-white data-[state=active]:text-blue-600">Branches</TabsTrigger>
-                  <TabsTrigger value="subjects" className="data-[state=active]:bg-white data-[state=active]:text-blue-600">Subjects</TabsTrigger>
-                  <TabsTrigger value="papers" className="data-[state=active]:bg-white data-[state=active]:text-blue-600">Question Papers</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 bg-blue-50 rounded-lg p-1 gap-1">
+                  <TabsTrigger value="regulations" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 text-xs md:text-sm">Regulations</TabsTrigger>
+                  <TabsTrigger value="semesters" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 text-xs md:text-sm">Semesters</TabsTrigger>
+                  <TabsTrigger value="branches" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 text-xs md:text-sm">Branches</TabsTrigger>
+                  <TabsTrigger value="subjects" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 text-xs md:text-sm">Subjects</TabsTrigger>
+                  <TabsTrigger value="papers" className="data-[state=active]:bg-white data-[state=active]:text-blue-600 text-xs md:text-sm col-span-2 md:col-span-1">Papers</TabsTrigger>
                 </TabsList>
 
                 {/* Regulations Tab */}
@@ -944,131 +1026,205 @@ const AdminPanel = () => {
                           Upload Paper
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-lg">
+                      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                          <DialogTitle className="text-blue-900">Upload Question Paper</DialogTitle>
+                          <DialogTitle className="text-blue-900 text-xl font-semibold">Upload Question Paper</DialogTitle>
                         </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label>Regulation *</Label>
-                            <Select value={paperForm.regulation_id} onValueChange={(value) => setPaperForm({...paperForm, regulation_id: value, semester_id: '', branch_id: '', subject_id: ''})}>
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="Select regulation" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {regulations.map((reg) => (
-                                  <SelectItem key={reg.id} value={reg.id}>{reg.code} - {reg.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div>
-                            <Label>Semester *</Label>
-                            <Select value={paperForm.semester_id} onValueChange={(value) => setPaperForm({...paperForm, semester_id: value, branch_id: '', subject_id: ''})}>
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="Select semester" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {semesters.map((sem) => (
-                                  <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div>
-                            <Label>Branch *</Label>
-                            <Select value={paperForm.branch_id} onValueChange={(value) => setPaperForm({...paperForm, branch_id: value, subject_id: ''})}>
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="Select branch" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>{branch.code} - {branch.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div>
-                            <Label>Subject *</Label>
-                            <Select value={paperForm.subject_id} onValueChange={(value) => setPaperForm({...paperForm, subject_id: value})}>
-                              <SelectTrigger className="mt-1">
-                                <SelectValue placeholder="Select subject" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {getFilteredSubjects().map((subject) => (
-                                  <SelectItem key={subject.id} value={subject.id}>{subject.code} - {subject.name}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                        <div className="space-y-6 pt-4">
+                          {/* Academic Selection Section */}
+                          <div className="bg-blue-50/50 p-4 rounded-lg space-y-4">
+                            <h4 className="font-medium text-blue-900 mb-3">Academic Information</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-sm font-medium">Regulation *</Label>
+                                <Select value={paperForm.regulation_id} onValueChange={(value) => setPaperForm({...paperForm, regulation_id: value, semester_id: '', branch_id: '', subject_id: ''})}>
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select regulation" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {regulations.map((reg) => (
+                                      <SelectItem key={reg.id} value={reg.id}>{reg.code} - {reg.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-sm font-medium">Semester *</Label>
+                                <Select 
+                                  value={paperForm.semester_id} 
+                                  onValueChange={(value) => setPaperForm({...paperForm, semester_id: value, branch_id: '', subject_id: ''})}
+                                  disabled={!paperForm.regulation_id}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select semester" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {semesters.map((sem) => (
+                                      <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-sm font-medium">Branch *</Label>
+                                <Select 
+                                  value={paperForm.branch_id} 
+                                  onValueChange={(value) => setPaperForm({...paperForm, branch_id: value, subject_id: ''})}
+                                  disabled={!paperForm.semester_id}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select branch" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {branches.map((branch) => (
+                                      <SelectItem key={branch.id} value={branch.id}>{branch.code} - {branch.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label className="text-sm font-medium">Subject *</Label>
+                                <Select 
+                                  value={paperForm.subject_id} 
+                                  onValueChange={(value) => setPaperForm({...paperForm, subject_id: value})}
+                                  disabled={!paperForm.branch_id}
+                                >
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select subject" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {getFilteredSubjects().map((subject) => (
+                                      <SelectItem key={subject.id} value={subject.id}>{subject.code} - {subject.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
                           </div>
 
-                          <div>
-                            <Label htmlFor="title">Title *</Label>
-                            <Input
-                              id="title"
-                              value={paperForm.title}
-                              onChange={(e) => setPaperForm({...paperForm, title: e.target.value})}
-                              placeholder="e.g., Mid-Term Exam"
-                              className="mt-1"
-                            />
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4">
+                          {/* Paper Details Section */}
+                          <div className="bg-purple-50/50 p-4 rounded-lg space-y-4">
+                            <h4 className="font-medium text-purple-900 mb-3">Paper Details</h4>
                             <div>
-                              <Label htmlFor="year">Year</Label>
+                              <Label htmlFor="title" className="text-sm font-medium">Paper Title *</Label>
                               <Input
-                                id="year"
-                                type="number"
-                                value={paperForm.year}
-                                onChange={(e) => setPaperForm({...paperForm, year: e.target.value})}
-                                placeholder="2024"
+                                id="title"
+                                value={paperForm.title}
+                                onChange={(e) => setPaperForm({...paperForm, title: e.target.value})}
+                                placeholder="e.g., Mid-Term Exam 2024"
                                 className="mt-1"
                               />
                             </div>
-                            <div>
-                              <Label htmlFor="month">Month</Label>
-                              <Input
-                                id="month"
-                                value={paperForm.month}
-                                onChange={(e) => setPaperForm({...paperForm, month: e.target.value})}
-                                placeholder="January"
-                                className="mt-1"
-                              />
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <Label htmlFor="year" className="text-sm font-medium">Year</Label>
+                                <Input
+                                  id="year"
+                                  type="number"
+                                  value={paperForm.year}
+                                  onChange={(e) => setPaperForm({...paperForm, year: e.target.value})}
+                                  placeholder="2024"
+                                  className="mt-1"
+                                  min="2020"
+                                  max="2030"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="month" className="text-sm font-medium">Month</Label>
+                                <Select value={paperForm.month} onValueChange={(value) => setPaperForm({...paperForm, month: value})}>
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select month" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="January">January</SelectItem>
+                                    <SelectItem value="February">February</SelectItem>
+                                    <SelectItem value="March">March</SelectItem>
+                                    <SelectItem value="April">April</SelectItem>
+                                    <SelectItem value="May">May</SelectItem>
+                                    <SelectItem value="June">June</SelectItem>
+                                    <SelectItem value="July">July</SelectItem>
+                                    <SelectItem value="August">August</SelectItem>
+                                    <SelectItem value="September">September</SelectItem>
+                                    <SelectItem value="October">October</SelectItem>
+                                    <SelectItem value="November">November</SelectItem>
+                                    <SelectItem value="December">December</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label htmlFor="exam_type" className="text-sm font-medium">Exam Type</Label>
+                                <Select value={paperForm.exam_type} onValueChange={(value) => setPaperForm({...paperForm, exam_type: value})}>
+                                  <SelectTrigger className="mt-1">
+                                    <SelectValue placeholder="Select type" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Mid-Term">Mid-Term</SelectItem>
+                                    <SelectItem value="Final">Final</SelectItem>
+                                    <SelectItem value="Internal">Internal</SelectItem>
+                                    <SelectItem value="External">External</SelectItem>
+                                    <SelectItem value="Regular">Regular</SelectItem>
+                                    <SelectItem value="Supplementary">Supplementary</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           </div>
-                          
-                          <div>
-                            <Label htmlFor="exam_type">Exam Type</Label>
-                            <Input
-                              id="exam_type"
-                              value={paperForm.exam_type}
-                              onChange={(e) => setPaperForm({...paperForm, exam_type: e.target.value})}
-                              placeholder="Mid-Term/Final/Regular"
-                              className="mt-1"
-                            />
+
+                          {/* File Upload Section */}
+                          <div className="bg-green-50/50 p-4 rounded-lg">
+                            <h4 className="font-medium text-green-900 mb-3">File Upload</h4>
+                            <div>
+                              <Label htmlFor="file" className="text-sm font-medium">PDF File *</Label>
+                              <Input
+                                id="file"
+                                type="file"
+                                accept=".pdf"
+                                onChange={(e) => setPaperForm({...paperForm, file: e.target.files?.[0] || null})}
+                                className="mt-1"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                Only PDF files are accepted. Maximum file size: 10MB
+                              </p>
+                              {paperForm.file && (
+                                <div className="mt-2 p-2 bg-white rounded border text-sm">
+                                  <strong>Selected:</strong> {paperForm.file.name} ({(paperForm.file.size / 1024 / 1024).toFixed(2)} MB)
+                                </div>
+                              )}
+                            </div>
                           </div>
 
-                          <div>
-                            <Label htmlFor="file">PDF File *</Label>
-                            <Input
-                              id="file"
-                              type="file"
-                              accept=".pdf"
-                              onChange={(e) => setPaperForm({...paperForm, file: e.target.files?.[0] || null})}
-                              className="mt-1"
-                            />
+                          {/* Action Buttons */}
+                          <div className="flex gap-3 pt-4">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => setPaperDialogOpen(false)}
+                              className="flex-1"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={handleFileUpload}
+                              disabled={uploading || !paperForm.file || !paperForm.subject_id || !paperForm.title}
+                              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:opacity-50"
+                            >
+                              {uploading ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  Uploading...
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <Upload className="h-4 w-4" />
+                                  Upload Paper
+                                </div>
+                              )}
+                            </Button>
                           </div>
-
-                          <Button
-                            onClick={handleFileUpload}
-                            disabled={uploading}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                          >
-                            {uploading ? 'Uploading...' : 'Upload Question Paper'}
-                          </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
