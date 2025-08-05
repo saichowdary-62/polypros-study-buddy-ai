@@ -601,74 +601,106 @@ const AdminPanel = () => {
                 <GraduationCap className="h-4 w-4" />
                 Semesters
               </TabsTrigger>
-              <TabsTrigger value="branches" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Branches
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Subjects
-              </TabsTrigger>
-              <TabsTrigger value="papers" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Question Papers
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Regulations Tab */}
-            <TabsContent value="regulations" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5 text-blue-600" />
-                    Regulations Management
-                  </CardTitle>
-                  <Dialog open={showRegulationDialog} onOpenChange={setShowRegulationDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Regulation
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Add Regulation Form */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      Add New Regulation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Input
+                      placeholder="Code (e.g., C20)"
+                      value={newRegulation.code}
+                      onChange={(e) => setNewRegulation({...newRegulation, code: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Name"
+                      value={newRegulation.name}
+                      onChange={(e) => setNewRegulation({...newRegulation, name: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Description (optional)"
+                      value={newRegulation.description}
+                      onChange={(e) => setNewRegulation({...newRegulation, description: e.target.value})}
+                    />
+                    <Button 
+                      onClick={editingRegulation ? handleUpdateRegulation : handleAddRegulation} 
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Processing..." : editingRegulation ? "Update Regulation" : "Add Regulation"}
+                    </Button>
+                    {editingRegulation && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setEditingRegulation(null);
+                          setNewRegulation({code: '', name: '', description: ''});
+                        }}
+                        className="w-full"
+                      >
+                        Cancel Edit
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingRegulation ? 'Edit Regulation' : 'Add New Regulation'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleRegulationSubmit} className="space-y-4">
-                        <div>
-                          <Label htmlFor="code">Code</Label>
-                          <Input
-                            id="code"
-                            value={regulationForm.code}
-                            onChange={(e) => setRegulationForm({...regulationForm, code: e.target.value})}
-                            placeholder="e.g., C20, C23"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            id="name"
-                            value={regulationForm.name}
-                            onChange={(e) => setRegulationForm({...regulationForm, name: e.target.value})}
-                            placeholder="e.g., Curriculum 2020"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={regulationForm.description}
-                            onChange={(e) => setRegulationForm({...regulationForm, description: e.target.value})}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowRegulationDialog(false);
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Regulations List */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Existing Regulations ({regulations.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="text-center py-8">Loading...</div>
+                    ) : regulations.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">No regulations found</div>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {regulations.map((regulation) => (
+                          <div key={regulation.id} className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-blue-900">{regulation.code}</div>
+                                <div className="text-sm text-gray-600">{regulation.name}</div>
+                                {regulation.description && (
+                                  <div className="text-xs text-gray-500 mt-1">{regulation.description}</div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingRegulation(regulation);
+                                    setNewRegulation({
+                                      code: regulation.code, 
+                                      name: regulation.name, 
+                                      description: regulation.description || ''
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteRegulation(regulation.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
                             setEditingRegulation(null);
                             setRegulationForm({ code: "", name: "", description: "" });
                           }}>
@@ -739,75 +771,95 @@ const AdminPanel = () => {
 
             {/* Semesters Tab */}
             <TabsContent value="semesters" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5 text-blue-600" />
-                    Semesters Management
-                  </CardTitle>
-                  <Dialog open={showSemesterDialog} onOpenChange={setShowSemesterDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Semester
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Add Semester Form */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Add New Semester
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Input
+                      type="number"
+                      placeholder="Number (e.g., 1)"
+                      value={newSemester.number || ''}
+                      onChange={(e) => setNewSemester({...newSemester, number: parseInt(e.target.value) || 0})}
+                    />
+                    <Input
+                      placeholder="Name (e.g., 1st Semester)"
+                      value={newSemester.name}
+                      onChange={(e) => setNewSemester({...newSemester, name: e.target.value})}
+                    />
+                    <Button 
+                      onClick={editingSemester ? handleUpdateSemester : handleAddSemester} 
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Processing..." : editingSemester ? "Update Semester" : "Add Semester"}
+                    </Button>
+                    {editingSemester && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setEditingSemester(null);
+                          setNewSemester({number: 0, name: ''});
+                        }}
+                        className="w-full"
+                      >
+                        Cancel Edit
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingSemester ? 'Edit Semester' : 'Add New Semester'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleSemesterSubmit} className="space-y-4">
-                        <div>
-                          <Label htmlFor="number">Number</Label>
-                          <Input
-                            id="number"
-                            type="number"
-                            value={semesterForm.number}
-                            onChange={(e) => setSemesterForm({...semesterForm, number: e.target.value})}
-                            placeholder="e.g., 1, 2, 3"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            id="name"
-                            value={semesterForm.name}
-                            onChange={(e) => setSemesterForm({...semesterForm, name: e.target.value})}
-                            placeholder="e.g., 1st & 2nd Semester"
-                            required
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowSemesterDialog(false);
-                            setEditingSemester(null);
-                            setSemesterForm({ number: "", name: "" });
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingSemester ? 'Update' : 'Add'} Semester
-                          </Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    {semesters.map((semester) => (
-                      <div key={semester.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div>
-                          <h3 className="font-semibold">Semester {semester.number}: {semester.name}</h3>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Semesters List */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Existing Semesters ({semesters.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="text-center py-8">Loading...</div>
+                    ) : semesters.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">No semesters found</div>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {semesters.map((semester) => (
+                          <div key={semester.id} className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-blue-900">Semester {semester.number}</div>
+                                <div className="text-sm text-gray-600">{semester.name}</div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingSemester(semester);
+                                    setNewSemester({number: semester.number, name: semester.name});
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteSemester(semester.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
                               setEditingSemester(semester);
                               setSemesterForm({
                                 number: semester.number.toString(),
@@ -849,80 +901,106 @@ const AdminPanel = () => {
 
             {/* Branches Tab */}
             <TabsContent value="branches" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-blue-600" />
-                    Branches Management
-                  </CardTitle>
-                  <Dialog open={showBranchDialog} onOpenChange={setShowBranchDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Branch
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Add Branch Form */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="h-5 w-5" />
+                      Add New Branch
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Input
+                      placeholder="Code (e.g., CME)"
+                      value={newBranch.code}
+                      onChange={(e) => setNewBranch({...newBranch, code: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Name"
+                      value={newBranch.name}
+                      onChange={(e) => setNewBranch({...newBranch, name: e.target.value})}
+                    />
+                    <Input
+                      placeholder="Description (optional)"
+                      value={newBranch.description}
+                      onChange={(e) => setNewBranch({...newBranch, description: e.target.value})}
+                    />
+                    <Button 
+                      onClick={editingBranch ? handleUpdateBranch : handleAddBranch} 
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Processing..." : editingBranch ? "Update Branch" : "Add Branch"}
+                    </Button>
+                    {editingBranch && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setEditingBranch(null);
+                          setNewBranch({code: '', name: '', description: ''});
+                        }}
+                        className="w-full"
+                      >
+                        Cancel Edit
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingBranch ? 'Edit Branch' : 'Add New Branch'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleBranchSubmit} className="space-y-4">
-                        <div>
-                          <Label htmlFor="code">Code</Label>
-                          <Input
-                            id="code"
-                            value={branchForm.code}
-                            onChange={(e) => setBranchForm({...branchForm, code: e.target.value})}
-                            placeholder="e.g., CME, ECE"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            id="name"
-                            value={branchForm.name}
-                            onChange={(e) => setBranchForm({...branchForm, name: e.target.value})}
-                            placeholder="e.g., Computer Engineering"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={branchForm.description}
-                            onChange={(e) => setBranchForm({...branchForm, description: e.target.value})}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowBranchDialog(false);
-                            setEditingBranch(null);
-                            setBranchForm({ code: "", name: "", description: "" });
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingBranch ? 'Update' : 'Add'} Branch
-                          </Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    {branches.map((branch) => (
-                      <div key={branch.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div>
-                          <h3 className="font-semibold">{branch.code} - {branch.name}</h3>
-                          {branch.description && (
-                            <p className="text-sm text-gray-600">{branch.description}</p>
-                          )}
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Branches List */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Existing Branches ({branches.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="text-center py-8">Loading...</div>
+                    ) : branches.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">No branches found</div>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {branches.map((branch) => (
+                          <div key={branch.id} className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-blue-900">{branch.code}</div>
+                                <div className="text-sm text-gray-600">{branch.name}</div>
+                                {branch.description && (
+                                  <div className="text-xs text-gray-500 mt-1">{branch.description}</div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingBranch(branch);
+                                    setNewBranch({
+                                      code: branch.code, 
+                                      name: branch.name, 
+                                      description: branch.description || ''
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteBranch(branch.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -971,121 +1049,153 @@ const AdminPanel = () => {
 
             {/* Subjects Tab */}
             <TabsContent value="subjects" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                    Subjects Management
-                  </CardTitle>
-                  <Dialog open={showSubjectDialog} onOpenChange={setShowSubjectDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Subject
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Add Subject Form */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      Add New Subject
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Select value={newSubject.regulation_id} onValueChange={(value) => setNewSubject({...newSubject, regulation_id: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Regulation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regulations.map((reg) => (
+                          <SelectItem key={reg.id} value={reg.id}>{reg.code} - {reg.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={newSubject.semester_id} onValueChange={(value) => setNewSubject({...newSubject, semester_id: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Semester" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {semesters.map((sem) => (
+                          <SelectItem key={sem.id} value={sem.id}>{sem.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Select value={newSubject.branch_id} onValueChange={(value) => setNewSubject({...newSubject, branch_id: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Branch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>{branch.code} - {branch.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Input
+                      placeholder="Subject Code"
+                      value={newSubject.code}
+                      onChange={(e) => setNewSubject({...newSubject, code: e.target.value})}
+                    />
+                    
+                    <Input
+                      placeholder="Subject Name"
+                      value={newSubject.name}
+                      onChange={(e) => setNewSubject({...newSubject, name: e.target.value})}
+                    />
+                    
+                    <Input
+                      placeholder="Description (optional)"
+                      value={newSubject.description}
+                      onChange={(e) => setNewSubject({...newSubject, description: e.target.value})}
+                    />
+                    
+                    <Button 
+                      onClick={editingSubject ? handleUpdateSubject : handleAddSubject} 
+                      disabled={loading}
+                      className="w-full"
+                    >
+                      {loading ? "Processing..." : editingSubject ? "Update Subject" : "Add Subject"}
+                    </Button>
+                    {editingSubject && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setEditingSubject(null);
+                          setNewSubject({
+                            regulation_id: '', semester_id: '', branch_id: '', 
+                            code: '', name: '', description: ''
+                          });
+                        }}
+                        className="w-full"
+                      >
+                        Cancel Edit
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingSubject ? 'Edit Subject' : 'Add New Subject'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleSubjectSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="regulation">Regulation</Label>
-                            <Select
-                              value={subjectForm.regulation_id}
-                              onValueChange={(value) => setSubjectForm({...subjectForm, regulation_id: value})}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select regulation" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {regulations.map((regulation) => (
-                                  <SelectItem key={regulation.id} value={regulation.id}>
-                                    {regulation.code} - {regulation.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Subjects List */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Existing Subjects ({subjects.length})</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {loading ? (
+                      <div className="text-center py-8">Loading...</div>
+                    ) : subjects.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500">No subjects found</div>
+                    ) : (
+                      <div className="space-y-3 max-h-96 overflow-y-auto">
+                        {subjects.map((subject) => (
+                          <div key={subject.id} className="p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="font-medium text-blue-900">{subject.code}</div>
+                                <div className="text-sm text-gray-600">{subject.name}</div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {regulations.find(r => r.id === subject.regulation_id)?.code} | 
+                                  {semesters.find(s => s.id === subject.semester_id)?.name} | 
+                                  {branches.find(b => b.id === subject.branch_id)?.code}
+                                </div>
+                                {subject.description && (
+                                  <div className="text-xs text-gray-500 mt-1">{subject.description}</div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingSubject(subject);
+                                    setNewSubject({
+                                      regulation_id: subject.regulation_id,
+                                      semester_id: subject.semester_id,
+                                      branch_id: subject.branch_id,
+                                      code: subject.code,
+                                      name: subject.name,
+                                      description: subject.description || ''
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDeleteSubject(subject.id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <Label htmlFor="semester">Semester</Label>
-                            <Select
-                              value={subjectForm.semester_id}
-                              onValueChange={(value) => setSubjectForm({...subjectForm, semester_id: value})}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select semester" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {semesters.map((semester) => (
-                                  <SelectItem key={semester.id} value={semester.id}>
-                                    {semester.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="branch">Branch</Label>
-                          <Select
-                            value={subjectForm.branch_id}
-                            onValueChange={(value) => setSubjectForm({...subjectForm, branch_id: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select branch" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {branches.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id}>
-                                  {branch.code} - {branch.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="code">Subject Code</Label>
-                            <Input
-                              id="code"
-                              value={subjectForm.code}
-                              onChange={(e) => setSubjectForm({...subjectForm, code: e.target.value})}
-                              placeholder="e.g., CM-101"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="name">Subject Name</Label>
-                            <Input
-                              id="name"
-                              value={subjectForm.name}
-                              onChange={(e) => setSubjectForm({...subjectForm, name: e.target.value})}
-                              placeholder="e.g., Programming in C"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={subjectForm.description}
-                            onChange={(e) => setSubjectForm({...subjectForm, description: e.target.value})}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowSubjectDialog(false);
-                            setEditingSubject(null);
-                            setSubjectForm({ code: "", name: "", description: "", regulation_id: "", semester_id: "", branch_id: "" });
-                          }}>
-                            Cancel
-                          </Button>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
                           <Button type="submit">
                             {editingSubject ? 'Update' : 'Add'} Subject
                           </Button>
