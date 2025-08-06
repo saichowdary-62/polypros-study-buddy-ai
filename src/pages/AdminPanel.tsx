@@ -82,12 +82,15 @@ const AdminPanel = () => {
   const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [selectedPaper, setSelectedPaper] = useState<QuestionPaper | null>(null);
+  const [editingPaper, setEditingPaper] = useState<QuestionPaper | null>(null);
   
   // Form states
   const [regulationForm, setRegulationForm] = useState({ code: "", name: "", description: "" });
   const [semesterForm, setSemesterForm] = useState({ number: "", name: "" });
   const [branchForm, setBranchForm] = useState({ code: "", name: "", description: "" });
   const [subjectForm, setSubjectForm] = useState({ code: "", name: "", description: "", regulation_id: "", semester_id: "", branch_id: "" });
+  const [paperForm, setPaperForm] = useState({ title: "", year: "", month: "", exam_type: "", subject_id: "" });
   
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
@@ -480,6 +483,35 @@ const AdminPanel = () => {
       toast.error(`Upload failed: ${error.message || 'Unknown error'}`);
     } finally {
       setUploading(false);
+    }
+  };
+
+  // Paper Update
+  const handlePaperUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedPaper || !editingPaper) return;
+    
+    try {
+      const { error } = await supabase
+        .from('question_papers')
+        .update({
+          title: editingPaper.title,
+          year: editingPaper.year,
+          month: editingPaper.month,
+          exam_type: editingPaper.exam_type
+        })
+        .eq('id', selectedPaper.id);
+      
+      if (error) throw error;
+      
+      toast.success("Question paper updated successfully");
+      setSelectedPaper(null);
+      setEditingPaper(null);
+      loadQuestionPapers();
+    } catch (error) {
+      console.error("Error updating paper:", error);
+      toast.error("Failed to update question paper");
     }
   };
 
@@ -1157,261 +1189,389 @@ const AdminPanel = () => {
 
             {/* Question Papers Tab */}
             <TabsContent value="papers" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                    Question Papers Management
-                  </CardTitle>
-                  <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Upload className="h-4 w-4 mr-2" />
-                        Upload Question Paper
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Upload Question Paper</DialogTitle>
-                      </DialogHeader>
-                      <form onSubmit={handleUploadSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Question Papers List */}
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      Question Papers
+                    </CardTitle>
+                    <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Upload Question Paper</DialogTitle>
+                        </DialogHeader>
+                        <form onSubmit={handleUploadSubmit} className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="regulation">Regulation *</Label>
+                              <Select
+                                value={uploadForm.regulation_id}
+                                onValueChange={(value) => setUploadForm({
+                                  ...uploadForm, 
+                                  regulation_id: value,
+                                  semester_id: "",
+                                  branch_id: "",
+                                  subject_id: ""
+                                })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select regulation" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {regulations.map((regulation) => (
+                                    <SelectItem key={regulation.id} value={regulation.id}>
+                                      {regulation.code} - {regulation.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label htmlFor="semester">Semester *</Label>
+                              <Select
+                                value={uploadForm.semester_id}
+                                onValueChange={(value) => setUploadForm({
+                                  ...uploadForm, 
+                                  semester_id: value,
+                                  branch_id: "",
+                                  subject_id: ""
+                                })}
+                                disabled={!uploadForm.regulation_id}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select semester" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {semesters.map((semester) => (
+                                    <SelectItem key={semester.id} value={semester.id}>
+                                      {semester.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
                           <div>
-                            <Label htmlFor="regulation">Regulation *</Label>
+                            <Label htmlFor="branch">Branch *</Label>
                             <Select
-                              value={uploadForm.regulation_id}
+                              value={uploadForm.branch_id}
                               onValueChange={(value) => setUploadForm({
                                 ...uploadForm, 
-                                regulation_id: value,
+                                branch_id: value,
+                                subject_id: ""
+                              })}
+                              disabled={!uploadForm.semester_id}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select branch" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {branches.map((branch) => (
+                                  <SelectItem key={branch.id} value={branch.id}>
+                                    {branch.code} - {branch.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="subject">Subject *</Label>
+                            <Select
+                              value={uploadForm.subject_id}
+                              onValueChange={(value) => setUploadForm({...uploadForm, subject_id: value})}
+                              disabled={!uploadForm.branch_id}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select subject" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {getFilteredSubjects().map((subject) => (
+                                  <SelectItem key={subject.id} value={subject.id}>
+                                    {subject.code} - {subject.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label htmlFor="title">Paper Title *</Label>
+                            <Input
+                              id="title"
+                              value={uploadForm.title}
+                              onChange={(e) => setUploadForm({...uploadForm, title: e.target.value})}
+                              placeholder="e.g., Mid-term Examination - May 2023"
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <Label htmlFor="year">Year</Label>
+                              <Input
+                                id="year"
+                                type="number"
+                                value={uploadForm.year}
+                                onChange={(e) => setUploadForm({...uploadForm, year: e.target.value})}
+                                placeholder="2023"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="month">Month</Label>
+                              <Input
+                                id="month"
+                                value={uploadForm.month}
+                                onChange={(e) => setUploadForm({...uploadForm, month: e.target.value})}
+                                placeholder="May"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="exam_type">Exam Type</Label>
+                              <Select
+                                value={uploadForm.exam_type}
+                                onValueChange={(value) => setUploadForm({...uploadForm, exam_type: value})}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Mid-term">Mid-term</SelectItem>
+                                  <SelectItem value="End-term">End-term</SelectItem>
+                                  <SelectItem value="Supplementary">Supplementary</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div>
+                            <Label htmlFor="file">Question Paper File *</Label>
+                            <Input
+                              id="file"
+                              type="file"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              onChange={(e) => setUploadForm({...uploadForm, file: e.target.files?.[0] || null})}
+                              disabled={!uploadForm.subject_id}
+                              required
+                            />
+                            <p className="text-sm text-gray-500 mt-1">
+                              Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 10MB)
+                            </p>
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <Button type="button" variant="outline" onClick={() => {
+                              setShowUploadDialog(false);
+                              setUploadForm({
+                                regulation_id: "",
                                 semester_id: "",
                                 branch_id: "",
-                                subject_id: ""
-                              })}
+                                subject_id: "",
+                                title: "",
+                                year: "",
+                                month: "",
+                                exam_type: "",
+                                file: null
+                              });
+                            }}>
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit" 
+                              disabled={uploading || !uploadForm.subject_id || !uploadForm.file}
                             >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select regulation" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {regulations.map((regulation) => (
-                                  <SelectItem key={regulation.id} value={regulation.id}>
-                                    {regulation.code} - {regulation.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              {uploading ? 'Uploading...' : 'Upload Paper'}
+                            </Button>
                           </div>
-                          <div>
-                            <Label htmlFor="semester">Semester *</Label>
-                            <Select
-                              value={uploadForm.semester_id}
-                              onValueChange={(value) => setUploadForm({
-                                ...uploadForm, 
-                                semester_id: value,
-                                branch_id: "",
-                                subject_id: ""
-                              })}
-                              disabled={!uploadForm.regulation_id}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select semester" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {semesters.map((semester) => (
-                                  <SelectItem key={semester.id} value={semester.id}>
-                                    {semester.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="max-h-[70vh] overflow-y-auto space-y-3">
+                      {questionPapers.map((paper) => (
+                        <div 
+                          key={paper.id} 
+                          className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => setSelectedPaper(paper)}
+                        >
+                          <h3 className="font-semibold text-sm">{paper.title}</h3>
+                          <p className="text-xs text-gray-600">{getSubjectName(paper.subject_id)}</p>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="text-xs text-gray-500">
+                              {paper.year && paper.month && `${paper.month} ${paper.year}`}
+                            </span>
+                            <div className="flex gap-1">
+                              {paper.file_url && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(paper.file_url, '_blank');
+                                  }}
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              )}
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Question Paper</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete this question paper? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteQuestionPaper(paper)}>
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Paper Edit/Details Panel */}
+                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Edit className="h-5 w-5 text-purple-600" />
+                      {selectedPaper ? 'Edit Question Paper' : 'Select a Paper to Edit'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {selectedPaper ? (
+                      <form onSubmit={(e) => handlePaperUpdate(e)} className="space-y-4">
                         <div>
-                          <Label htmlFor="branch">Branch *</Label>
-                          <Select
-                            value={uploadForm.branch_id}
-                            onValueChange={(value) => setUploadForm({
-                              ...uploadForm, 
-                              branch_id: value,
-                              subject_id: ""
-                            })}
-                            disabled={!uploadForm.semester_id}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select branch" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {branches.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id}>
-                                  {branch.code} - {branch.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="subject">Subject *</Label>
-                          <Select
-                            value={uploadForm.subject_id}
-                            onValueChange={(value) => setUploadForm({...uploadForm, subject_id: value})}
-                            disabled={!uploadForm.branch_id}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select subject" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {getFilteredSubjects().map((subject) => (
-                                <SelectItem key={subject.id} value={subject.id}>
-                                  {subject.code} - {subject.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="title">Paper Title *</Label>
+                          <Label htmlFor="edit-title">Paper Title</Label>
                           <Input
-                            id="title"
-                            value={uploadForm.title}
-                            onChange={(e) => setUploadForm({...uploadForm, title: e.target.value})}
-                            placeholder="e.g., Mid-term Examination - May 2023"
-                            required
+                            id="edit-title"
+                            value={editingPaper?.title || selectedPaper.title}
+                            onChange={(e) => setEditingPaper({
+                              ...selectedPaper,
+                              title: e.target.value
+                            })}
+                            placeholder="Enter paper title"
                           />
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
+                        
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor="year">Year</Label>
+                            <Label htmlFor="edit-year">Year</Label>
                             <Input
-                              id="year"
+                              id="edit-year"
                               type="number"
-                              value={uploadForm.year}
-                              onChange={(e) => setUploadForm({...uploadForm, year: e.target.value})}
+                              value={editingPaper?.year?.toString() || selectedPaper.year?.toString() || ""}
+                              onChange={(e) => setEditingPaper({
+                                ...selectedPaper,
+                                year: parseInt(e.target.value) || undefined
+                              })}
                               placeholder="2023"
                             />
                           </div>
                           <div>
-                            <Label htmlFor="month">Month</Label>
+                            <Label htmlFor="edit-month">Month</Label>
                             <Input
-                              id="month"
-                              value={uploadForm.month}
-                              onChange={(e) => setUploadForm({...uploadForm, month: e.target.value})}
+                              id="edit-month"
+                              value={editingPaper?.month || selectedPaper.month || ""}
+                              onChange={(e) => setEditingPaper({
+                                ...selectedPaper,
+                                month: e.target.value
+                              })}
                               placeholder="May"
                             />
                           </div>
-                          <div>
-                            <Label htmlFor="exam_type">Exam Type</Label>
-                            <Select
-                              value={uploadForm.exam_type}
-                              onValueChange={(value) => setUploadForm({...uploadForm, exam_type: value})}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Mid-term">Mid-term</SelectItem>
-                                <SelectItem value="End-term">End-term</SelectItem>
-                                <SelectItem value="Supplementary">Supplementary</SelectItem>
-                              </SelectContent>
-                            </Select>
+                        </div>
+
+                        <div>
+                          <Label htmlFor="edit-exam-type">Exam Type</Label>
+                          <Select
+                            value={editingPaper?.exam_type || selectedPaper.exam_type || ""}
+                            onValueChange={(value) => setEditingPaper({
+                              ...selectedPaper,
+                              exam_type: value
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select exam type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Mid-term">Mid-term</SelectItem>
+                              <SelectItem value="End-term">End-term</SelectItem>
+                              <SelectItem value="Supplementary">Supplementary</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Current Details</Label>
+                          <div className="text-sm text-gray-600 space-y-1 p-3 bg-gray-50 rounded">
+                            <p><strong>Subject:</strong> {getSubjectName(selectedPaper.subject_id)}</p>
+                            <p><strong>File:</strong> {selectedPaper.file_name}</p>
+                            {selectedPaper.file_size && (
+                              <p><strong>Size:</strong> {formatFileSize(selectedPaper.file_size)}</p>
+                            )}
+                            <p><strong>Uploaded:</strong> {new Date(selectedPaper.created_at).toLocaleDateString()}</p>
                           </div>
                         </div>
-                        <div>
-                          <Label htmlFor="file">Question Paper File *</Label>
-                          <Input
-                            id="file"
-                            type="file"
-                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                            onChange={(e) => setUploadForm({...uploadForm, file: e.target.files?.[0] || null})}
-                            disabled={!uploadForm.subject_id}
-                            required
-                          />
-                          <p className="text-sm text-gray-500 mt-1">
-                            Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 10MB)
-                          </p>
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowUploadDialog(false);
-                            setUploadForm({
-                              regulation_id: "",
-                              semester_id: "",
-                              branch_id: "",
-                              subject_id: "",
-                              title: "",
-                              year: "",
-                              month: "",
-                              exam_type: "",
-                              file: null
-                            });
-                          }}>
+
+                        <div className="flex gap-2">
+                          <Button
+                            type="submit"
+                            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                          >
+                            Update Paper
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedPaper(null);
+                              setEditingPaper(null);
+                            }}
+                          >
                             Cancel
                           </Button>
-                          <Button 
-                            type="submit" 
-                            disabled={uploading || !uploadForm.subject_id || !uploadForm.file}
-                          >
-                            {uploading ? 'Uploading...' : 'Upload Paper'}
-                          </Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    {questionPapers.map((paper) => (
-                      <div key={paper.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div className="flex-1">
-                          <h3 className="font-semibold">{paper.title}</h3>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p>Subject: {getSubjectName(paper.subject_id)}</p>
-                            {paper.year && paper.month && (
-                              <p>Date: {paper.month} {paper.year}</p>
-                            )}
-                            {paper.exam_type && (
-                              <p>Type: {paper.exam_type}</p>
-                            )}
-                            {paper.file_size && (
-                              <p>Size: {formatFileSize(paper.file_size)}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          {paper.file_url && (
+                          {selectedPaper.file_url && (
                             <Button
+                              type="button"
                               variant="outline"
-                              size="sm"
-                              onClick={() => window.open(paper.file_url, '_blank')}
+                              onClick={() => window.open(selectedPaper.file_url, '_blank')}
                             >
-                              <Download className="h-4 w-4" />
+                              <Download className="h-4 w-4 mr-2" />
+                              Download
                             </Button>
                           )}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Question Paper</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this question paper? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteQuestionPaper(paper)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
+                      </form>
+                    ) : (
+                      <div className="text-center text-gray-500 py-8">
+                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>Select a question paper from the list to view and edit details</p>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
