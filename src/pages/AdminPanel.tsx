@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -595,55 +595,57 @@ const AdminPanel = () => {
   const getFilteredSubjects = () => {
     return subjects.filter(subject => 
       subject.regulation_id === uploadForm.regulation_id &&
-      subject.semester_id === uploadForm.semester_id &&
-      subject.branch_id === uploadForm.branch_id
-    );
-  };
-
-  // Password protection screen
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
-        <Card className="w-full max-w-md border-0 shadow-xl bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Admin Access
-            </CardTitle>
-            <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
-                  className="w-full"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                >
-                  Access Admin Panel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/")}
-                  className="flex items-center gap-2"
-                >
-                  <Home className="h-4 w-4" />
-                  Home
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+              {/* Subjects Tab */}
+              <TabsContent value="subjects">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Subjects</h3>
+                    <Button onClick={() => setShowAddSubject(true)}>
+                      Add Subject
+                    </Button>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {subjects.map((subject) => (
+                      <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{subject.code} - {subject.name}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {regulations.find(r => r.id === subject.regulation_id)?.code} | 
+                            {semesters.find(s => s.id === subject.semester_id)?.name} | 
+                            {branches.find(b => b.id === subject.branch_id)?.code}
+                          </p>
+                          {subject.description && (
+                            <p className="text-sm text-muted-foreground">{subject.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setEditingSubject(subject);
+                              setShowAddSubject(true);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteSubject(subject.id)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+            </CardContent>
+          </Card>
+        </Tabs>
       </div>
     );
   }
@@ -731,41 +733,38 @@ const AdminPanel = () => {
                     </TabsTrigger>
                     <TabsTrigger value="papers" className="w-full justify-start flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      Question Papers
-                    </TabsTrigger>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Desktop tabs */}
-            <TabsList className="hidden md:grid w-full grid-cols-5 mb-8 bg-white/80 backdrop-blur-sm">
-              <TabsTrigger value="regulations" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Regulations
-              </TabsTrigger>
-              <TabsTrigger value="semesters" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Semesters
-              </TabsTrigger>
-              <TabsTrigger value="branches" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Branches
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Subjects
-              </TabsTrigger>
-              <TabsTrigger value="papers" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Question Papers
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Regulations Tab */}
-            <TabsContent value="regulations" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Database Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 w-full h-auto">
+                <TabsTrigger 
+                  value="regulations" 
+                  className="w-full"
+                >
+                  Regulations
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="semesters" 
+                  className="w-full"
+                >
+                  Semesters
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="branches" 
+                  className="w-full"
+                >
+                  Branches
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="subjects" 
+                  className="w-full"
+                >
+                  Subjects
+                </TabsTrigger>
+              </TabsList>
                   <CardTitle className="flex items-center gap-2">
                     <Database className="h-5 w-5 text-blue-600" />
                     Regulations Management
@@ -840,51 +839,50 @@ const AdminPanel = () => {
                           )}
                         </div>
                         <div className="flex gap-2">
-                          <Button
-                            variant="outline"
+              {/* Regulations Tab */}
+              <TabsContent value="regulations">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Regulations</h3>
+                    <Button onClick={() => setShowAddRegulation(true)}>
+                      Add Regulation
+                    </Button>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {regulations.map((regulation) => (
+                      <div key={regulation.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{regulation.code} - {regulation.name}</h4>
+                          {regulation.description && (
+                            <p className="text-sm text-muted-foreground">{regulation.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
                             size="sm"
                             onClick={() => {
                               setEditingRegulation(regulation);
-                              setRegulationForm({
-                                code: regulation.code,
-                                name: regulation.name,
-                                description: regulation.description || ""
-                              });
-                              setShowRegulationDialog(true);
+                              setShowAddRegulation(true);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            Edit
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Regulation</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this regulation? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteRegulation(regulation.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteRegulation(regulation.id)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            {/* Semesters Tab */}
             <TabsContent value="semesters" className="space-y-6">
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -953,48 +951,48 @@ const AdminPanel = () => {
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
+              {/* Semesters Tab */}
+              <TabsContent value="semesters">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Semesters</h3>
+                    <Button onClick={() => setShowAddSemester(true)}>
+                      Add Semester
+                    </Button>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {semesters.map((semester) => (
+                      <div key={semester.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{semester.name}</h4>
+                          <p className="text-sm text-muted-foreground">Semester {semester.number}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
                             size="sm"
                             onClick={() => {
                               setEditingSemester(semester);
-                              setSemesterForm({
-                                number: semester.number.toString(),
-                                name: semester.name
-                              });
-                              setShowSemesterDialog(true);
+                              setShowAddSemester(true);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            Edit
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Semester</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this semester? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteSemester(semester.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteSemester(semester.id)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            {/* Branches Tab */}
             <TabsContent value="branches" className="space-y-6">
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -1073,50 +1071,50 @@ const AdminPanel = () => {
                         </div>
                         <div className="flex gap-2">
                           <Button
-                            variant="outline"
+              {/* Branches Tab */}
+              <TabsContent value="branches">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">Branches</h3>
+                    <Button onClick={() => setShowAddBranch(true)}>
+                      Add Branch
+                    </Button>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {branches.map((branch) => (
+                      <div key={branch.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{branch.code} - {branch.name}</h4>
+                          {branch.description && (
+                            <p className="text-sm text-muted-foreground">{branch.description}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
                             size="sm"
                             onClick={() => {
                               setEditingBranch(branch);
-                              setBranchForm({
-                                code: branch.code,
-                                name: branch.name,
-                                description: branch.description || ""
-                              });
-                              setShowBranchDialog(true);
+                              setShowAddBranch(true);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            Edit
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Branch</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this branch? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteBranch(branch.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDeleteBranch(branch.id)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
 
-            {/* Subjects Tab */}
             <TabsContent value="subjects" className="space-y-6">
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
