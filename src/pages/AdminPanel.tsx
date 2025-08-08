@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Plus, Edit, Trash2, Upload, Download, FileText, Settings, Database, BookOpen, GraduationCap, Building2, Bot } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Upload, Download, FileText, Settings, Database, BookOpen, GraduationCap, Building2, Bot, Menu, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -59,6 +59,11 @@ interface QuestionPaper {
 const AdminPanel = () => {
   const navigate = useNavigate();
   
+  // Password protection state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   // State for all data
   const [regulations, setRegulations] = useState<Regulation[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
@@ -105,10 +110,24 @@ const AdminPanel = () => {
     file: null as File | null
   });
 
+  // Password authentication
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === "teampoly") {
+      setIsAuthenticated(true);
+      toast.success("Access granted");
+    } else {
+      toast.error("Incorrect password");
+      setPassword("");
+    }
+  };
+
   // Load all data on component mount
   useEffect(() => {
-    loadAllData();
-  }, []);
+    if (isAuthenticated) {
+      loadAllData();
+    }
+  }, [isAuthenticated]);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -581,6 +600,54 @@ const AdminPanel = () => {
     );
   };
 
+  // Password protection screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
+        <Card className="w-full max-w-md border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Admin Access
+            </CardTitle>
+            <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  className="w-full"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  Access Admin Panel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate("/")}
+                  className="flex items-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Home
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -594,18 +661,35 @@ const AdminPanel = () => {
       <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50 animate-slide-down">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2 animate-fade-in">
+            <div className="flex items-center space-x-4 animate-fade-in">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
               <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
               <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros Admin</span>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Home
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsAuthenticated(false)}
+                className="text-red-600 hover:text-red-700"
+              >
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -624,7 +708,38 @@ const AdminPanel = () => {
 
           {/* Main Content */}
           <Tabs defaultValue="regulations" className="w-full animate-fade-in-delayed">
-            <TabsList className="grid w-full grid-cols-5 mb-8 bg-white/80 backdrop-blur-sm">
+            {/* Mobile menu */}
+            <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden mb-4`}>
+              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <TabsTrigger value="regulations" className="w-full justify-start flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      Regulations
+                    </TabsTrigger>
+                    <TabsTrigger value="semesters" className="w-full justify-start flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4" />
+                      Semesters
+                    </TabsTrigger>
+                    <TabsTrigger value="branches" className="w-full justify-start flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Branches
+                    </TabsTrigger>
+                    <TabsTrigger value="subjects" className="w-full justify-start flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      Subjects
+                    </TabsTrigger>
+                    <TabsTrigger value="papers" className="w-full justify-start flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Question Papers
+                    </TabsTrigger>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Desktop tabs */}
+            <TabsList className="hidden md:grid w-full grid-cols-5 mb-8 bg-white/80 backdrop-blur-sm">
               <TabsTrigger value="regulations" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
                 Regulations
@@ -1568,7 +1683,7 @@ const AdminPanel = () => {
                         <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                         <p>Select a question paper from the list to view and edit details</p>
                       </div>
-                    )}
+                     )}
                   </CardContent>
                 </Card>
               </div>
