@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsTrigger, TabsList, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Edit, Trash2, Upload, Download, FileText, Calendar, ArrowLeft, Save, X } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ArrowLeft, Plus, Edit, Trash2, Upload, Download, FileText, Settings, Database, BookOpen, GraduationCap, Building2, Bot, Menu, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,9 +59,6 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   
   // Password protection state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // State for all data
   const [regulations, setRegulations] = useState<Regulation[]>([]);
@@ -98,37 +94,6 @@ const AdminPanel = () => {
   const [paperForm, setPaperForm] = useState({ title: "", year: "", month: "", exam_type: "", subject_id: "" });
   
   // Upload form state
-  const [uploadForm, setUploadForm] = useState({
-    regulation_id: "",
-    semester_id: "",
-    branch_id: "",
-    subject_id: "",
-    title: "",
-    year: "",
-    month: "",
-    exam_type: "",
-    file: null as File | null
-  });
-
-  // Password authentication
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === "teampoly") {
-      setIsAuthenticated(true);
-      toast.success("Access granted");
-    } else {
-      toast.error("Incorrect password");
-      setPassword("");
-    }
-  };
-
-  // Load all data on component mount
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadAllData();
-    }
-  }, [isAuthenticated]);
-
   const loadAllData = async () => {
     setLoading(true);
     try {
@@ -610,46 +575,6 @@ const AdminPanel = () => {
                       <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h4 className="font-medium">{subject.code} - {subject.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {regulations.find(r => r.id === subject.regulation_id)?.code} | 
-                            {semesters.find(s => s.id === subject.semester_id)?.name} | 
-                            {branches.find(b => b.id === subject.branch_id)?.code}
-                          </p>
-                          {subject.description && (
-                            <p className="text-sm text-muted-foreground">{subject.description}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => {
-                              setEditingSubject(subject);
-                              setShowAddSubject(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => handleDeleteSubject(subject.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </CardContent>
-          </Card>
-        </Tabs>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -1675,9 +1600,6 @@ const AdminPanel = () => {
                             </Button>
                           )}
                         </div>
-                      </form>
-                    ) : (
-                      <div className="text-center text-gray-500 py-8">
                         <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                         <p>Select a question paper from the list to view and edit details</p>
                       </div>
