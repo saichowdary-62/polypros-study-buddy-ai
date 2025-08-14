@@ -607,7 +607,7 @@ const AdminPanel = () => {
         <Card className="w-full max-w-md border-0 shadow-xl bg-white/90 backdrop-blur-sm">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Admin Access
+              Amar edit
             </CardTitle>
             <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
           </CardHeader>
