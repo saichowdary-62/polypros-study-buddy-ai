@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown, Chrome, X } from "lucide-react";
+import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown, Chrome, X, Menu } from "lucide-react";
 import { Chatbot } from "@/components/Chatbot";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Link } from "react-router-dom";
@@ -12,6 +12,7 @@ const Index = () => {
   const [showChatbot, setShowChatbot] = useState(false);
   const [isLoadingChatbot, setIsLoadingChatbot] = useState(false);
   const [showBrowserPopup, setShowBrowserPopup] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Show browser recommendation popup if not shown before
@@ -35,6 +36,13 @@ const Index = () => {
     }, 2000);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -54,13 +62,15 @@ const Index = () => {
               <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
               <span className="text-xl sm:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
             </div>
-            <div className="hidden sm:flex space-x-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex space-x-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <Link to="/" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
                 Home
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link to="/question-papers" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
-                Papers
+                Paper
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
               <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
@@ -72,15 +82,56 @@ const Index = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
             </div>
-            {/* Mobile menu button */}
-            <div className="sm:hidden">
-              <div className="flex space-x-4 text-sm">
-                <Link to="/question-papers" className="text-gray-700 hover:text-blue-600 transition-colors">Papers</Link>
-                <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">About</Link>
-              </div>
+            
+            {/* Mobile Hamburger Menu Button */}
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleMobileMenu}
+                className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300"
+              >
+                <Menu className="h-6 w-6" />
+              </Button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-blue-100/50 animate-slide-down">
+            <div className="px-4 py-2 space-y-1">
+              <Link 
+                to="/" 
+                onClick={closeMobileMenu}
+                className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-300 relative group"
+              >
+                Home
+              </Link>
+              <Link 
+                to="/question-papers" 
+                onClick={closeMobileMenu}
+                className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-300 relative group"
+              >
+                Paper
+              </Link>
+              <Link 
+                to="/about" 
+                onClick={closeMobileMenu}
+                className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-300 relative group"
+              >
+                About
+              </Link>
+              <Link 
+                to="/admin" 
+                onClick={closeMobileMenu}
+                className="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all duration-300 relative group"
+              >
+                Admin
+              </Link>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section */}
