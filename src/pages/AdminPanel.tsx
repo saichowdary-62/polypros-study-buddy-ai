@@ -58,10 +58,9 @@ interface QuestionPaper {
 
 const AdminPanel = () => {
   const navigate = useNavigate();
+  const isAuthenticated = true; // Password removed - always authenticated
   
   // Password protection state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // State for all data
@@ -601,18 +600,7 @@ const AdminPanel = () => {
   };
 
   // Password protection screen
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
-        <Card className="w-full max-w-md border-0 shadow-xl bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Admin Access
-            </CardTitle>
-            <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+   className="space-y-4">
               <div>
                 <Label htmlFor="password">Password</Label>
                 <Input
