@@ -58,9 +58,10 @@ interface QuestionPaper {
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  const isAuthenticated = true;
   
-  // Password protection state
+  // // Password protection state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   // State for all data
@@ -109,8 +110,17 @@ const AdminPanel = () => {
     file: null as File | null
   });
 
-  // Password authentication
-  
+  // // Password authentication
+  // const handlePasswordSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (password === "teampoly") {
+  //     setIsAuthenticated(true);
+  //     toast.success("Access granted");
+  //   } else {
+  //     toast.error("Incorrect password");
+  //     setPassword("");
+  //   }
+  // };
 
   // Load all data on component mount
   useEffect(() => {
@@ -590,6 +600,54 @@ const AdminPanel = () => {
     );
   };
 
+  // Password protection screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
+        <Card className="w-full max-w-md border-0 shadow-xl bg-white/90 backdrop-blur-sm">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Admin Access
+            </CardTitle>
+            <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                  className="w-full"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                >
+                  Access Admin Panel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => loadAllData();}
+                  className="flex items-center gap-2"
+                >
+                  <Home className="h-4 w-4" />
+                  Home
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -626,7 +684,7 @@ const AdminPanel = () => {
               </Button>
               <Button
                 variant="outline"
-                // Logout removed
+                onClick={() => setIsAuthenticated(false)}
                 className="text-red-600 hover:text-red-700"
               >
                 Logout
