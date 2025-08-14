@@ -59,7 +59,6 @@ interface QuestionPaper {
 const AdminPanel = () => {
   const navigate = useNavigate();
   const isAuthenticated = true;
-  const isAuthenticated = true; // Password removed - always authenticated
   
   // Password protection state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -111,16 +110,7 @@ const AdminPanel = () => {
   });
 
   // Password authentication
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password === "teampoly") {
-      setIsAuthenticated(true);
-      toast.success("Access granted");
-    } else {
-      toast.error("Incorrect password");
-      setPassword("");
-    }
-  };
+  
 
   // Load all data on component mount
   useEffect(() => {
