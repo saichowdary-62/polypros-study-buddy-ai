@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Plus, Edit, Trash2, Upload, Download, FileText, Settings, Database, BookOpen, GraduationCap, Building2, Bot, Menu, Home } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Edit, Plus, Upload, Download, RefreshCw, ArrowLeft, FileText, BookOpen, GraduationCap, Building } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 interface Regulation {
   id: string;
@@ -41,6 +41,9 @@ interface Subject {
   regulation_id: string;
   semester_id: string;
   branch_id: string;
+  regulations?: Regulation;
+  semesters?: Semester;
+  branches?: Branch;
 }
 
 interface QuestionPaper {
@@ -53,18 +56,14 @@ interface QuestionPaper {
   file_name?: string;
   file_size?: number;
   subject_id: string;
-  created_at: string;
+  subjects?: Subject;
 }
 
 const AdminPanel = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
-  // Password protection state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  // State for all data
+  // State for all entities
   const [regulations, setRegulations] = useState<Regulation[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -75,54 +74,44 @@ const AdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   
+  // Form states
+  const [editingRegulation, setEditingRegulation] = useState<Regulation | null>(null);
+  const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [editingQuestionPaper, setEditingQuestionPaper] = useState<QuestionPaper | null>(null);
+  
   // Dialog states
   const [showRegulationDialog, setShowRegulationDialog] = useState(false);
   const [showSemesterDialog, setShowSemesterDialog] = useState(false);
   const [showBranchDialog, setShowBranchDialog] = useState(false);
   const [showSubjectDialog, setShowSubjectDialog] = useState(false);
-  const [showUploadDialog, setShowUploadDialog] = useState(false);
-  
-  // Edit states
-  const [editingRegulation, setEditingRegulation] = useState<Regulation | null>(null);
-  const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const [selectedPaper, setSelectedPaper] = useState<QuestionPaper | null>(null);
-  const [editingPaper, setEditingPaper] = useState<QuestionPaper | null>(null);
-  
-  // Form states
-  const [regulationForm, setRegulationForm] = useState({ code: "", name: "", description: "" });
-  const [semesterForm, setSemesterForm] = useState({ number: "", name: "" });
-  const [branchForm, setBranchForm] = useState({ code: "", name: "", description: "" });
-  const [subjectForm, setSubjectForm] = useState({ code: "", name: "", description: "", regulation_id: "", semester_id: "", branch_id: "" });
-  const [paperForm, setPaperForm] = useState({ title: "", year: "", month: "", exam_type: "", subject_id: "" });
-  
-  // Upload form state
-  const [uploadForm, setUploadForm] = useState({
-    regulation_id: "",
-    semester_id: "",
-    branch_id: "",
-    subject_id: "",
-    title: "",
-    year: "",
-    month: "",
-    exam_type: "",
+  const [showQuestionPaperDialog, setShowQuestionPaperDialog] = useState(false);
+
+  // Form data
+  const [regulationForm, setRegulationForm] = useState({ code: '', name: '', description: '' });
+  const [semesterForm, setSemesterForm] = useState({ number: 0, name: '' });
+  const [branchForm, setBranchForm] = useState({ code: '', name: '', description: '' });
+  const [subjectForm, setSubjectForm] = useState({ 
+    code: '', 
+    name: '', 
+    description: '', 
+    regulation_id: '', 
+    semester_id: '', 
+    branch_id: '' 
+  });
+  const [questionPaperForm, setQuestionPaperForm] = useState({
+    title: '',
+    year: new Date().getFullYear(),
+    month: '',
+    exam_type: '',
+    subject_id: '',
     file: null as File | null
   });
 
-  // Password authentication
-  const handlePasswordSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsAuthenticated(true);
-    toast.success("Access granted (by passed)");
-  };
-
-  // Load all data on component mount
   useEffect(() => {
-    if (isAuthenticated) {
-      loadAllData();
-    }
-  }, [isAuthenticated]);
+    loadAllData();
+  }, []);
 
   const loadAllData = async () => {
     setLoading(true);
@@ -135,8 +124,8 @@ const AdminPanel = () => {
         loadQuestionPapers()
       ]);
     } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Failed to load data");
+      console.error('Error loading data:', error);
+      toast({ title: "Error loading data", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -149,11 +138,11 @@ const AdminPanel = () => {
       .order('code');
     
     if (error) {
-      console.error("Error loading regulations:", error);
-      toast.error("Failed to load regulations");
-    } else {
-      setRegulations(data || []);
+      console.error('Error loading regulations:', error);
+      return;
     }
+    
+    setRegulations(data || []);
   };
 
   const loadSemesters = async () => {
@@ -163,11 +152,11 @@ const AdminPanel = () => {
       .order('number');
     
     if (error) {
-      console.error("Error loading semesters:", error);
-      toast.error("Failed to load semesters");
-    } else {
-      setSemesters(data || []);
+      console.error('Error loading semesters:', error);
+      return;
     }
+    
+    setSemesters(data || []);
   };
 
   const loadBranches = async () => {
@@ -177,45 +166,57 @@ const AdminPanel = () => {
       .order('code');
     
     if (error) {
-      console.error("Error loading branches:", error);
-      toast.error("Failed to load branches");
-    } else {
-      setBranches(data || []);
+      console.error('Error loading branches:', error);
+      return;
     }
+    
+    setBranches(data || []);
   };
 
   const loadSubjects = async () => {
     const { data, error } = await supabase
       .from('subjects')
-      .select('*')
+      .select(`
+        *,
+        regulations(code, name),
+        semesters(number, name),
+        branches(code, name)
+      `)
       .order('code');
     
     if (error) {
-      console.error("Error loading subjects:", error);
-      toast.error("Failed to load subjects");
-    } else {
-      setSubjects(data || []);
+      console.error('Error loading subjects:', error);
+      return;
     }
+    
+    setSubjects(data || []);
   };
 
   const loadQuestionPapers = async () => {
     const { data, error } = await supabase
       .from('question_papers')
-      .select('*')
+      .select(`
+        *,
+        subjects(
+          code,
+          name,
+          regulations(code, name),
+          semesters(number, name),
+          branches(code, name)
+        )
+      `)
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error("Error loading question papers:", error);
-      toast.error("Failed to load question papers");
-    } else {
-      setQuestionPapers(data || []);
+      console.error('Error loading question papers:', error);
+      return;
     }
+    
+    setQuestionPapers(data || []);
   };
 
   // CRUD operations for Regulations
-  const handleRegulationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSaveRegulation = async () => {
     try {
       if (editingRegulation) {
         const { error } = await supabase
@@ -224,23 +225,23 @@ const AdminPanel = () => {
           .eq('id', editingRegulation.id);
         
         if (error) throw error;
-        toast.success("Regulation updated successfully");
+        toast({ title: "Regulation updated successfully" });
       } else {
         const { error } = await supabase
           .from('regulations')
           .insert([regulationForm]);
         
         if (error) throw error;
-        toast.success("Regulation added successfully");
+        toast({ title: "Regulation created successfully" });
       }
       
-      setRegulationForm({ code: "", name: "", description: "" });
-      setEditingRegulation(null);
       setShowRegulationDialog(false);
+      setEditingRegulation(null);
+      setRegulationForm({ code: '', name: '', description: '' });
       loadRegulations();
     } catch (error) {
-      console.error("Error saving regulation:", error);
-      toast.error("Failed to save regulation");
+      console.error('Error saving regulation:', error);
+      toast({ title: "Error saving regulation", variant: "destructive" });
     }
   };
 
@@ -252,48 +253,41 @@ const AdminPanel = () => {
         .eq('id', id);
       
       if (error) throw error;
-      toast.success("Regulation deleted successfully");
+      toast({ title: "Regulation deleted successfully" });
       loadRegulations();
     } catch (error) {
-      console.error("Error deleting regulation:", error);
-      toast.error("Failed to delete regulation");
+      console.error('Error deleting regulation:', error);
+      toast({ title: "Error deleting regulation", variant: "destructive" });
     }
   };
 
   // CRUD operations for Semesters
-  const handleSemesterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSaveSemester = async () => {
     try {
-      const semesterData = {
-        ...semesterForm,
-        number: parseInt(semesterForm.number)
-      };
-      
       if (editingSemester) {
         const { error } = await supabase
           .from('semesters')
-          .update(semesterData)
+          .update(semesterForm)
           .eq('id', editingSemester.id);
         
         if (error) throw error;
-        toast.success("Semester updated successfully");
+        toast({ title: "Semester updated successfully" });
       } else {
         const { error } = await supabase
           .from('semesters')
-          .insert([semesterData]);
+          .insert([semesterForm]);
         
         if (error) throw error;
-        toast.success("Semester added successfully");
+        toast({ title: "Semester created successfully" });
       }
       
-      setSemesterForm({ number: "", name: "" });
-      setEditingSemester(null);
       setShowSemesterDialog(false);
+      setEditingSemester(null);
+      setSemesterForm({ number: 0, name: '' });
       loadSemesters();
     } catch (error) {
-      console.error("Error saving semester:", error);
-      toast.error("Failed to save semester");
+      console.error('Error saving semester:', error);
+      toast({ title: "Error saving semester", variant: "destructive" });
     }
   };
 
@@ -305,18 +299,16 @@ const AdminPanel = () => {
         .eq('id', id);
       
       if (error) throw error;
-      toast.success("Semester deleted successfully");
+      toast({ title: "Semester deleted successfully" });
       loadSemesters();
     } catch (error) {
-      console.error("Error deleting semester:", error);
-      toast.error("Failed to delete semester");
+      console.error('Error deleting semester:', error);
+      toast({ title: "Error deleting semester", variant: "destructive" });
     }
   };
 
   // CRUD operations for Branches
-  const handleBranchSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSaveBranch = async () => {
     try {
       if (editingBranch) {
         const { error } = await supabase
@@ -325,23 +317,23 @@ const AdminPanel = () => {
           .eq('id', editingBranch.id);
         
         if (error) throw error;
-        toast.success("Branch updated successfully");
+        toast({ title: "Branch updated successfully" });
       } else {
         const { error } = await supabase
           .from('branches')
           .insert([branchForm]);
         
         if (error) throw error;
-        toast.success("Branch added successfully");
+        toast({ title: "Branch created successfully" });
       }
       
-      setBranchForm({ code: "", name: "", description: "" });
-      setEditingBranch(null);
       setShowBranchDialog(false);
+      setEditingBranch(null);
+      setBranchForm({ code: '', name: '', description: '' });
       loadBranches();
     } catch (error) {
-      console.error("Error saving branch:", error);
-      toast.error("Failed to save branch");
+      console.error('Error saving branch:', error);
+      toast({ title: "Error saving branch", variant: "destructive" });
     }
   };
 
@@ -353,18 +345,16 @@ const AdminPanel = () => {
         .eq('id', id);
       
       if (error) throw error;
-      toast.success("Branch deleted successfully");
+      toast({ title: "Branch deleted successfully" });
       loadBranches();
     } catch (error) {
-      console.error("Error deleting branch:", error);
-      toast.error("Failed to delete branch");
+      console.error('Error deleting branch:', error);
+      toast({ title: "Error deleting branch", variant: "destructive" });
     }
   };
 
   // CRUD operations for Subjects
-  const handleSubjectSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSaveSubject = async () => {
     try {
       if (editingSubject) {
         const { error } = await supabase
@@ -373,23 +363,30 @@ const AdminPanel = () => {
           .eq('id', editingSubject.id);
         
         if (error) throw error;
-        toast.success("Subject updated successfully");
+        toast({ title: "Subject updated successfully" });
       } else {
         const { error } = await supabase
           .from('subjects')
           .insert([subjectForm]);
         
         if (error) throw error;
-        toast.success("Subject added successfully");
+        toast({ title: "Subject created successfully" });
       }
       
-      setSubjectForm({ code: "", name: "", description: "", regulation_id: "", semester_id: "", branch_id: "" });
-      setEditingSubject(null);
       setShowSubjectDialog(false);
+      setEditingSubject(null);
+      setSubjectForm({ 
+        code: '', 
+        name: '', 
+        description: '', 
+        regulation_id: '', 
+        semester_id: '', 
+        branch_id: '' 
+      });
       loadSubjects();
     } catch (error) {
-      console.error("Error saving subject:", error);
-      toast.error("Failed to save subject");
+      console.error('Error saving subject:', error);
+      toast({ title: "Error saving subject", variant: "destructive" });
     }
   };
 
@@ -401,181 +398,102 @@ const AdminPanel = () => {
         .eq('id', id);
       
       if (error) throw error;
-      toast.success("Subject deleted successfully");
+      toast({ title: "Subject deleted successfully" });
       loadSubjects();
     } catch (error) {
-      console.error("Error deleting subject:", error);
-      toast.error("Failed to delete subject");
+      console.error('Error deleting subject:', error);
+      toast({ title: "Error deleting subject", variant: "destructive" });
     }
   };
 
-  // Question Paper Upload
-  const handleUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!uploadForm.file) {
-      toast.error("Please select a file to upload");
-      return;
-    }
-    
-    setUploading(true);
-    
+  // CRUD operations for Question Papers
+  const handleSaveQuestionPaper = async () => {
     try {
-      console.log("Starting upload process...");
+      setUploading(true);
       
-      // Upload file to Supabase Storage
-      const fileExt = uploadForm.file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${fileName}`;
+      let fileUrl = '';
+      let fileName = '';
+      let fileSize = 0;
       
-      console.log("Uploading file to storage:", filePath);
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('question-papers')
-        .upload(filePath, uploadForm.file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-      
-      if (uploadError) {
-        console.error("Storage upload error:", uploadError);
-        throw uploadError;
+      if (questionPaperForm.file) {
+        const file = questionPaperForm.file;
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('question-papers')
+          .upload(filePath, file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('question-papers')
+          .getPublicUrl(filePath);
+        
+        fileUrl = publicUrl;
+        fileName = file.name;
+        fileSize = file.size;
       }
       
-      console.log("File uploaded successfully:", uploadData);
-      
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('question-papers')
-        .getPublicUrl(filePath);
-      
-      console.log("Public URL generated:", urlData.publicUrl);
-      
-      // Save metadata to database
       const paperData = {
-        subject_id: uploadForm.subject_id,
-        title: uploadForm.title,
-        year: uploadForm.year ? parseInt(uploadForm.year) : null,
-        month: uploadForm.month || null,
-        exam_type: uploadForm.exam_type || null,
-        file_url: urlData.publicUrl,
-        file_name: uploadForm.file.name,
-        file_size: uploadForm.file.size
+        title: questionPaperForm.title,
+        year: questionPaperForm.year,
+        month: questionPaperForm.month,
+        exam_type: questionPaperForm.exam_type,
+        subject_id: questionPaperForm.subject_id,
+        ...(fileUrl && { file_url: fileUrl, file_name: fileName, file_size: fileSize })
       };
       
-      console.log("Saving paper metadata:", paperData);
-      
-      const { data: insertData, error: insertError } = await supabase
-        .from('question_papers')
-        .insert([paperData])
-        .select();
-      
-      if (insertError) {
-        console.error("Database insert error:", insertError);
-        throw insertError;
+      if (editingQuestionPaper) {
+        const { error } = await supabase
+          .from('question_papers')
+          .update(paperData)
+          .eq('id', editingQuestionPaper.id);
+        
+        if (error) throw error;
+        toast({ title: "Question paper updated successfully" });
+      } else {
+        const { error } = await supabase
+          .from('question_papers')
+          .insert([paperData]);
+        
+        if (error) throw error;
+        toast({ title: "Question paper created successfully" });
       }
       
-      console.log("Paper metadata saved successfully:", insertData);
-      
-      toast.success("Question paper uploaded successfully");
-      setUploadForm({
-        regulation_id: "",
-        semester_id: "",
-        branch_id: "",
-        subject_id: "",
-        title: "",
-        year: "",
-        month: "",
-        exam_type: "",
+      setShowQuestionPaperDialog(false);
+      setEditingQuestionPaper(null);
+      setQuestionPaperForm({
+        title: '',
+        year: new Date().getFullYear(),
+        month: '',
+        exam_type: '',
+        subject_id: '',
         file: null
       });
-      setShowUploadDialog(false);
       loadQuestionPapers();
-      
     } catch (error) {
-      console.error("Upload error:", error);
-      toast.error(`Upload failed: ${error.message || 'Unknown error'}`);
+      console.error('Error saving question paper:', error);
+      toast({ title: "Error saving question paper", variant: "destructive" });
     } finally {
       setUploading(false);
     }
   };
 
-  // Paper Update
-  const handlePaperUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!selectedPaper || !editingPaper) return;
-    
+  const handleDeleteQuestionPaper = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('question_papers')
-        .update({
-          title: editingPaper.title,
-          year: editingPaper.year,
-          month: editingPaper.month,
-          exam_type: editingPaper.exam_type
-        })
-        .eq('id', selectedPaper.id);
-      
-      if (error) throw error;
-      
-      toast.success("Question paper updated successfully");
-      setSelectedPaper(null);
-      setEditingPaper(null);
-      loadQuestionPapers();
-    } catch (error) {
-      console.error("Error updating paper:", error);
-      toast.error("Failed to update question paper");
-    }
-  };
-
-  const handleDeleteQuestionPaper = async (paper: QuestionPaper) => {
-    try {
-      // Delete from storage if file exists
-      if (paper.file_url) {
-        const fileName = paper.file_url.split('/').pop();
-        if (fileName) {
-          await supabase.storage
-            .from('question-papers')
-            .remove([fileName]);
-        }
-      }
-      
-      // Delete from database
       const { error } = await supabase
         .from('question_papers')
         .delete()
-        .eq('id', paper.id);
+        .eq('id', id);
       
       if (error) throw error;
-      
-      toast.success("Question paper deleted successfully");
+      toast({ title: "Question paper deleted successfully" });
       loadQuestionPapers();
     } catch (error) {
-      console.error("Error deleting question paper:", error);
-      toast.error("Failed to delete question paper");
+      console.error('Error deleting question paper:', error);
+      toast({ title: "Error deleting question paper", variant: "destructive" });
     }
-  };
-
-  // Helper functions
-  const getRegulationName = (id: string) => {
-    const regulation = regulations.find(r => r.id === id);
-    return regulation ? `${regulation.code} - ${regulation.name}` : 'Unknown';
-  };
-
-  const getSemesterName = (id: string) => {
-    const semester = semesters.find(s => s.id === id);
-    return semester ? semester.name : 'Unknown';
-  };
-
-  const getBranchName = (id: string) => {
-    const branch = branches.find(b => b.id === id);
-    return branch ? `${branch.code} - ${branch.name}` : 'Unknown';
-  };
-
-  const getSubjectName = (id: string) => {
-    const subject = subjects.find(s => s.id === id);
-    return subject ? `${subject.code} - ${subject.name}` : 'Unknown';
   };
 
   const formatFileSize = (bytes: number) => {
@@ -586,63 +504,6 @@ const AdminPanel = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Filter subjects based on selected regulation, semester, and branch
-  const getFilteredSubjects = () => {
-    return subjects.filter(subject => 
-      subject.regulation_id === uploadForm.regulation_id &&
-      subject.semester_id === uploadForm.semester_id &&
-      subject.branch_id === uploadForm.branch_id
-    );
-  };
-
-  // Password protection screen
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 flex items-center justify-center">
-        <Card className="w-full max-w-md border-0 shadow-xl bg-white/90 backdrop-blur-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Amar edit
-            </CardTitle>
-            <p className="text-gray-600 mt-2">Enter password to access admin panel</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
-                  className="w-full"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                >
-                  Access Admin Panel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => loadAllData();}
-                  className="flex items-center gap-2"
-                >
-                  <Home className="h-4 w-4" />
-                  Home
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -650,39 +511,35 @@ const AdminPanel = () => {
         <div className="absolute top-20 left-10 w-20 h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
         <div className="absolute top-40 right-20 w-16 h-16 bg-purple-200 rounded-full opacity-30 animate-bounce" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-40 left-20 w-24 h-24 bg-blue-300 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-60 left-1/3 w-12 h-12 bg-purple-300 rounded-full opacity-25 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+        <div className="absolute bottom-60 right-1/4 w-18 h-18 bg-blue-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1.5s' }}></div>
       </div>
 
       {/* Navigation */}
-      <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50 animate-slide-down">
+      <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4 animate-fade-in">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-              <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
-              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros Admin</span>
+            <div className="flex items-center space-x-2">
+              <GraduationCap className="h-8 w-8 text-blue-600 animate-bounce" />
+              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">Admin Panel</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center space-x-4">
               <Button 
                 variant="outline" 
+                onClick={() => loadAllData()}
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button 
+                variant="ghost" 
                 onClick={() => navigate('/')}
-                className="flex items-center gap-2 hover:scale-105 transition-transform duration-300"
+                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Home
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setIsAuthenticated(false)}
-                className="text-red-600 hover:text-red-700"
-              >
-                Logout
               </Button>
             </div>
           </div>
@@ -690,85 +547,59 @@ const AdminPanel = () => {
       </nav>
 
       <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
-          <div className="text-center mb-8 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
-              dappadi
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
+              Admin Dashboard
             </h1>
             <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
               Manage regulations, semesters, branches, subjects, and question papers
             </p>
           </div>
 
-          {/* Main Content */}
-          <Tabs defaultValue="regulations" className="w-full animate-fade-in-delayed">
-            {/* Mobile menu */}
-            <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden mb-4`}>
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <TabsTrigger value="regulations" className="w-full justify-start flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      Regulations
-                    </TabsTrigger>
-                    <TabsTrigger value="semesters" className="w-full justify-start flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4" />
-                      Semesters
-                    </TabsTrigger>
-                    <TabsTrigger value="branches" className="w-full justify-start flex items-center gap-2">
-                      <Building2 className="h-4 w-4" />
-                      Branches
-                    </TabsTrigger>
-                    <TabsTrigger value="subjects" className="w-full justify-start flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      Subjects
-                    </TabsTrigger>
-                    <TabsTrigger value="papers" className="w-full justify-start flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      Question Papers
-                    </TabsTrigger>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Desktop tabs */}
-            <TabsList className="hidden md:grid w-full grid-cols-5 mb-8 bg-white/80 backdrop-blur-sm">
+          <Tabs defaultValue="regulations" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="regulations" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
                 Regulations
               </TabsTrigger>
               <TabsTrigger value="semesters" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
+                <BookOpen className="h-4 w-4" />
                 Semesters
               </TabsTrigger>
               <TabsTrigger value="branches" className="flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
+                <Building className="h-4 w-4" />
                 Branches
               </TabsTrigger>
               <TabsTrigger value="subjects" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
+                <GraduationCap className="h-4 w-4" />
                 Subjects
               </TabsTrigger>
               <TabsTrigger value="papers" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <Upload className="h-4 w-4" />
                 Question Papers
               </TabsTrigger>
             </TabsList>
 
             {/* Regulations Tab */}
-            <TabsContent value="regulations" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <TabsContent value="regulations">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5 text-blue-600" />
-                    Regulations Management
+                    <FileText className="h-5 w-5" />
+                    Regulations
                   </CardTitle>
                   <Dialog open={showRegulationDialog} onOpenChange={setShowRegulationDialog}>
                     <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
+                      <Button 
+                        onClick={() => {
+                          setEditingRegulation(null);
+                          setRegulationForm({ code: '', name: '', description: '' });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
                         Add Regulation
                       </Button>
                     </DialogTrigger>
@@ -778,63 +609,52 @@ const AdminPanel = () => {
                           {editingRegulation ? 'Edit Regulation' : 'Add New Regulation'}
                         </DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={handleRegulationSubmit} className="space-y-4">
+                      <div className="space-y-4">
                         <div>
-                          <Label htmlFor="code">Code</Label>
+                          <Label htmlFor="reg-code">Code</Label>
                           <Input
-                            id="code"
+                            id="reg-code"
                             value={regulationForm.code}
-                            onChange={(e) => setRegulationForm({...regulationForm, code: e.target.value})}
-                            placeholder="e.g., C20, C23"
-                            required
+                            onChange={(e) => setRegulationForm({ ...regulationForm, code: e.target.value })}
+                            placeholder="e.g., C20"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="name">Name</Label>
+                          <Label htmlFor="reg-name">Name</Label>
                           <Input
-                            id="name"
+                            id="reg-name"
                             value={regulationForm.name}
-                            onChange={(e) => setRegulationForm({...regulationForm, name: e.target.value})}
-                            placeholder="e.g., Curriculum 2020"
-                            required
+                            onChange={(e) => setRegulationForm({ ...regulationForm, name: e.target.value })}
+                            placeholder="e.g., C20 Regulation"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="description">Description</Label>
+                          <Label htmlFor="reg-desc">Description</Label>
                           <Textarea
-                            id="description"
+                            id="reg-desc"
                             value={regulationForm.description}
-                            onChange={(e) => setRegulationForm({...regulationForm, description: e.target.value})}
+                            onChange={(e) => setRegulationForm({ ...regulationForm, description: e.target.value })}
                             placeholder="Optional description"
                           />
                         </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowRegulationDialog(false);
-                            setEditingRegulation(null);
-                            setRegulationForm({ code: "", name: "", description: "" });
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingRegulation ? 'Update' : 'Add'} Regulation
-                          </Button>
-                        </div>
-                      </form>
+                        <Button onClick={handleSaveRegulation} className="w-full">
+                          {editingRegulation ? 'Update' : 'Create'} Regulation
+                        </Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4">
+                  <div className="space-y-4">
                     {regulations.map((regulation) => (
-                      <div key={regulation.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={regulation.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <h3 className="font-semibold">{regulation.code} - {regulation.name}</h3>
+                          <h3 className="font-medium">{regulation.code} - {regulation.name}</h3>
                           {regulation.description && (
-                            <p className="text-sm text-gray-600">{regulation.description}</p>
+                            <p className="text-sm text-muted-foreground">{regulation.description}</p>
                           )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -843,34 +663,20 @@ const AdminPanel = () => {
                               setRegulationForm({
                                 code: regulation.code,
                                 name: regulation.name,
-                                description: regulation.description || ""
+                                description: regulation.description || ''
                               });
                               setShowRegulationDialog(true);
                             }}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Regulation</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this regulation? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteRegulation(regulation.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteRegulation(regulation.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -880,17 +686,23 @@ const AdminPanel = () => {
             </TabsContent>
 
             {/* Semesters Tab */}
-            <TabsContent value="semesters" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <TabsContent value="semesters">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5 text-blue-600" />
-                    Semesters Management
+                    <BookOpen className="h-5 w-5" />
+                    Semesters
                   </CardTitle>
                   <Dialog open={showSemesterDialog} onOpenChange={setShowSemesterDialog}>
                     <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
+                      <Button 
+                        onClick={() => {
+                          setEditingSemester(null);
+                          setSemesterForm({ number: 0, name: '' });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
                         Add Semester
                       </Button>
                     </DialogTrigger>
@@ -900,59 +712,49 @@ const AdminPanel = () => {
                           {editingSemester ? 'Edit Semester' : 'Add New Semester'}
                         </DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={handleSemesterSubmit} className="space-y-4">
+                      <div className="space-y-4">
                         <div>
-                          <Label htmlFor="number">Number</Label>
+                          <Label htmlFor="sem-number">Number</Label>
                           <Input
-                            id="number"
+                            id="sem-number"
                             type="number"
                             value={semesterForm.number}
-                            onChange={(e) => setSemesterForm({...semesterForm, number: e.target.value})}
-                            placeholder="e.g., 1, 2, 3"
-                            required
+                            onChange={(e) => setSemesterForm({ ...semesterForm, number: parseInt(e.target.value) || 0 })}
+                            placeholder="e.g., 1"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="name">Name</Label>
+                          <Label htmlFor="sem-name">Name</Label>
                           <Input
-                            id="name"
+                            id="sem-name"
                             value={semesterForm.name}
-                            onChange={(e) => setSemesterForm({...semesterForm, name: e.target.value})}
-                            placeholder="e.g., 1st & 2nd Semester"
-                            required
+                            onChange={(e) => setSemesterForm({ ...semesterForm, name: e.target.value })}
+                            placeholder="e.g., 1st Semester"
                           />
                         </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowSemesterDialog(false);
-                            setEditingSemester(null);
-                            setSemesterForm({ number: "", name: "" });
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingSemester ? 'Update' : 'Add'} Semester
-                          </Button>
-                        </div>
-                      </form>
+                        <Button onClick={handleSaveSemester} className="w-full">
+                          {editingSemester ? 'Update' : 'Create'} Semester
+                        </Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4">
+                  <div className="space-y-4">
                     {semesters.map((semester) => (
-                      <div key={semester.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={semester.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <h3 className="font-semibold">Semester {semester.number}: {semester.name}</h3>
+                          <h3 className="font-medium">{semester.name}</h3>
+                          <Badge variant="outline">Semester {semester.number}</Badge>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
                               setEditingSemester(semester);
                               setSemesterForm({
-                                number: semester.number.toString(),
+                                number: semester.number,
                                 name: semester.name
                               });
                               setShowSemesterDialog(true);
@@ -960,27 +762,13 @@ const AdminPanel = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Semester</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this semester? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteSemester(semester.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteSemester(semester.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -990,17 +778,23 @@ const AdminPanel = () => {
             </TabsContent>
 
             {/* Branches Tab */}
-            <TabsContent value="branches" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <TabsContent value="branches">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-blue-600" />
-                    Branches Management
+                    <Building className="h-5 w-5" />
+                    Branches
                   </CardTitle>
                   <Dialog open={showBranchDialog} onOpenChange={setShowBranchDialog}>
                     <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
+                      <Button 
+                        onClick={() => {
+                          setEditingBranch(null);
+                          setBranchForm({ code: '', name: '', description: '' });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
                         Add Branch
                       </Button>
                     </DialogTrigger>
@@ -1010,63 +804,52 @@ const AdminPanel = () => {
                           {editingBranch ? 'Edit Branch' : 'Add New Branch'}
                         </DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={handleBranchSubmit} className="space-y-4">
+                      <div className="space-y-4">
                         <div>
-                          <Label htmlFor="code">Code</Label>
+                          <Label htmlFor="branch-code">Code</Label>
                           <Input
-                            id="code"
+                            id="branch-code"
                             value={branchForm.code}
-                            onChange={(e) => setBranchForm({...branchForm, code: e.target.value})}
-                            placeholder="e.g., CME, ECE"
-                            required
+                            onChange={(e) => setBranchForm({ ...branchForm, code: e.target.value })}
+                            placeholder="e.g., CME"
                           />
                         </div>
                         <div>
-                          <Label htmlFor="name">Name</Label>
+                          <Label htmlFor="branch-name">Name</Label>
                           <Input
-                            id="name"
+                            id="branch-name"
                             value={branchForm.name}
-                            onChange={(e) => setBranchForm({...branchForm, name: e.target.value})}
+                            onChange={(e) => setBranchForm({ ...branchForm, name: e.target.value })}
                             placeholder="e.g., Computer Engineering"
-                            required
                           />
                         </div>
                         <div>
-                          <Label htmlFor="description">Description</Label>
+                          <Label htmlFor="branch-desc">Description</Label>
                           <Textarea
-                            id="description"
+                            id="branch-desc"
                             value={branchForm.description}
-                            onChange={(e) => setBranchForm({...branchForm, description: e.target.value})}
+                            onChange={(e) => setBranchForm({ ...branchForm, description: e.target.value })}
                             placeholder="Optional description"
                           />
                         </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowBranchDialog(false);
-                            setEditingBranch(null);
-                            setBranchForm({ code: "", name: "", description: "" });
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingBranch ? 'Update' : 'Add'} Branch
-                          </Button>
-                        </div>
-                      </form>
+                        <Button onClick={handleSaveBranch} className="w-full">
+                          {editingBranch ? 'Update' : 'Create'} Branch
+                        </Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4">
+                  <div className="space-y-4">
                     {branches.map((branch) => (
-                      <div key={branch.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={branch.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <h3 className="font-semibold">{branch.code} - {branch.name}</h3>
+                          <h3 className="font-medium">{branch.code} - {branch.name}</h3>
                           {branch.description && (
-                            <p className="text-sm text-gray-600">{branch.description}</p>
+                            <p className="text-sm text-muted-foreground">{branch.description}</p>
                           )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="sm"
@@ -1075,34 +858,20 @@ const AdminPanel = () => {
                               setBranchForm({
                                 code: branch.code,
                                 name: branch.name,
-                                description: branch.description || ""
+                                description: branch.description || ''
                               });
                               setShowBranchDialog(true);
                             }}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Branch</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this branch? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteBranch(branch.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteBranch(branch.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -1112,17 +881,30 @@ const AdminPanel = () => {
             </TabsContent>
 
             {/* Subjects Tab */}
-            <TabsContent value="subjects" className="space-y-6">
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+            <TabsContent value="subjects">
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-blue-600" />
-                    Subjects Management
+                    <GraduationCap className="h-5 w-5" />
+                    Subjects
                   </CardTitle>
                   <Dialog open={showSubjectDialog} onOpenChange={setShowSubjectDialog}>
                     <DialogTrigger asChild>
-                      <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                        <Plus className="h-4 w-4 mr-2" />
+                      <Button 
+                        onClick={() => {
+                          setEditingSubject(null);
+                          setSubjectForm({ 
+                            code: '', 
+                            name: '', 
+                            description: '', 
+                            regulation_id: '', 
+                            semester_id: '', 
+                            branch_id: '' 
+                          });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
                         Add Subject
                       </Button>
                     </DialogTrigger>
@@ -1132,253 +914,69 @@ const AdminPanel = () => {
                           {editingSubject ? 'Edit Subject' : 'Add New Subject'}
                         </DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={handleSubjectSubmit} className="space-y-4">
+                      <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor="regulation">Regulation</Label>
-                            <Select
-                              value={subjectForm.regulation_id}
-                              onValueChange={(value) => setSubjectForm({...subjectForm, regulation_id: value})}
+                            <Label htmlFor="subject-code">Code</Label>
+                            <Input
+                              id="subject-code"
+                              value={subjectForm.code}
+                              onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value })}
+                              placeholder="e.g., CS101"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="subject-name">Name</Label>
+                            <Input
+                              id="subject-name"
+                              value={subjectForm.name}
+                              onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
+                              placeholder="e.g., Programming Fundamentals"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div>
+                            <Label htmlFor="subject-regulation">Regulation</Label>
+                            <Select 
+                              value={subjectForm.regulation_id} 
+                              onValueChange={(value) => setSubjectForm({ ...subjectForm, regulation_id: value })}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select regulation" />
                               </SelectTrigger>
                               <SelectContent>
-                                {regulations.map((regulation) => (
-                                  <SelectItem key={regulation.id} value={regulation.id}>
-                                    {regulation.code} - {regulation.name}
+                                {regulations.map((reg) => (
+                                  <SelectItem key={reg.id} value={reg.id}>
+                                    {reg.code} - {reg.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="semester">Semester</Label>
-                            <Select
-                              value={subjectForm.semester_id}
-                              onValueChange={(value) => setSubjectForm({...subjectForm, semester_id: value})}
+                            <Label htmlFor="subject-semester">Semester</Label>
+                            <Select 
+                              value={subjectForm.semester_id} 
+                              onValueChange={(value) => setSubjectForm({ ...subjectForm, semester_id: value })}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select semester" />
                               </SelectTrigger>
                               <SelectContent>
-                                {semesters.map((semester) => (
-                                  <SelectItem key={semester.id} value={semester.id}>
-                                    {semester.name}
+                                {semesters.map((sem) => (
+                                  <SelectItem key={sem.id} value={sem.id}>
+                                    {sem.name}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
                           </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="branch">Branch</Label>
-                          <Select
-                            value={subjectForm.branch_id}
-                            onValueChange={(value) => setSubjectForm({...subjectForm, branch_id: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select branch" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {branches.map((branch) => (
-                                <SelectItem key={branch.id} value={branch.id}>
-                                  {branch.code} - {branch.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <Label htmlFor="code">Subject Code</Label>
-                            <Input
-                              id="code"
-                              value={subjectForm.code}
-                              onChange={(e) => setSubjectForm({...subjectForm, code: e.target.value})}
-                              placeholder="e.g., CM-101"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="name">Subject Name</Label>
-                            <Input
-                              id="name"
-                              value={subjectForm.name}
-                              onChange={(e) => setSubjectForm({...subjectForm, name: e.target.value})}
-                              placeholder="e.g., Programming in C"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={subjectForm.description}
-                            onChange={(e) => setSubjectForm({...subjectForm, description: e.target.value})}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button type="button" variant="outline" onClick={() => {
-                            setShowSubjectDialog(false);
-                            setEditingSubject(null);
-                            setSubjectForm({ code: "", name: "", description: "", regulation_id: "", semester_id: "", branch_id: "" });
-                          }}>
-                            Cancel
-                          </Button>
-                          <Button type="submit">
-                            {editingSubject ? 'Update' : 'Add'} Subject
-                          </Button>
-                        </div>
-                      </form>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4">
-                    {subjects.map((subject) => (
-                      <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                        <div>
-                          <h3 className="font-semibold">{subject.code} - {subject.name}</h3>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            <p>Regulation: {getRegulationName(subject.regulation_id)}</p>
-                            <p>Semester: {getSemesterName(subject.semester_id)}</p>
-                            <p>Branch: {getBranchName(subject.branch_id)}</p>
-                            {subject.description && <p>Description: {subject.description}</p>}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingSubject(subject);
-                              setSubjectForm({
-                                code: subject.code,
-                                name: subject.name,
-                                description: subject.description || "",
-                                regulation_id: subject.regulation_id,
-                                semester_id: subject.semester_id,
-                                branch_id: subject.branch_id
-                              });
-                              setShowSubjectDialog(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Subject</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete this subject? This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteSubject(subject.id)}>
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Question Papers Tab */}
-            <TabsContent value="papers" className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Question Papers List */}
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      Question Papers
-                    </CardTitle>
-                    <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
-                      <DialogTrigger asChild>
-                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Upload Question Paper</DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleUploadSubmit} className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label htmlFor="regulation">Regulation *</Label>
-                              <Select
-                                value={uploadForm.regulation_id}
-                                onValueChange={(value) => setUploadForm({
-                                  ...uploadForm, 
-                                  regulation_id: value,
-                                  semester_id: "",
-                                  branch_id: "",
-                                  subject_id: ""
-                                })}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select regulation" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {regulations.map((regulation) => (
-                                    <SelectItem key={regulation.id} value={regulation.id}>
-                                      {regulation.code} - {regulation.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <Label htmlFor="semester">Semester *</Label>
-                              <Select
-                                value={uploadForm.semester_id}
-                                onValueChange={(value) => setUploadForm({
-                                  ...uploadForm, 
-                                  semester_id: value,
-                                  branch_id: "",
-                                  subject_id: ""
-                                })}
-                                disabled={!uploadForm.regulation_id}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select semester" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {semesters.map((semester) => (
-                                    <SelectItem key={semester.id} value={semester.id}>
-                                      {semester.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="branch">Branch *</Label>
-                            <Select
-                              value={uploadForm.branch_id}
-                              onValueChange={(value) => setUploadForm({
-                                ...uploadForm, 
-                                branch_id: value,
-                                subject_id: ""
-                              })}
-                              disabled={!uploadForm.semester_id}
+                            <Label htmlFor="subject-branch">Branch</Label>
+                            <Select 
+                              value={subjectForm.branch_id} 
+                              onValueChange={(value) => setSubjectForm({ ...subjectForm, branch_id: value })}
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select branch" />
@@ -1392,296 +990,269 @@ const AdminPanel = () => {
                               </SelectContent>
                             </Select>
                           </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="subject-desc">Description</Label>
+                          <Textarea
+                            id="subject-desc"
+                            value={subjectForm.description}
+                            onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
+                            placeholder="Optional description"
+                          />
+                        </div>
+                        <Button onClick={handleSaveSubject} className="w-full">
+                          {editingSubject ? 'Update' : 'Create'} Subject
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {subjects.map((subject) => (
+                      <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h3 className="font-medium">{subject.code} - {subject.name}</h3>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline">{subject.regulations?.code}</Badge>
+                            <Badge variant="outline">{subject.semesters?.name}</Badge>
+                            <Badge variant="outline">{subject.branches?.code}</Badge>
+                          </div>
+                          {subject.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{subject.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingSubject(subject);
+                              setSubjectForm({
+                                code: subject.code,
+                                name: subject.name,
+                                description: subject.description || '',
+                                regulation_id: subject.regulation_id,
+                                semester_id: subject.semester_id,
+                                branch_id: subject.branch_id
+                              });
+                              setShowSubjectDialog(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteSubject(subject.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Question Papers Tab */}
+            <TabsContent value="papers">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="h-5 w-5" />
+                    Question Papers
+                  </CardTitle>
+                  <Dialog open={showQuestionPaperDialog} onOpenChange={setShowQuestionPaperDialog}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        onClick={() => {
+                          setEditingQuestionPaper(null);
+                          setQuestionPaperForm({
+                            title: '',
+                            year: new Date().getFullYear(),
+                            month: '',
+                            exam_type: '',
+                            subject_id: '',
+                            file: null
+                          });
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add Question Paper
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingQuestionPaper ? 'Edit Question Paper' : 'Add New Question Paper'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="paper-title">Title</Label>
+                          <Input
+                            id="paper-title"
+                            value={questionPaperForm.title}
+                            onChange={(e) => setQuestionPaperForm({ ...questionPaperForm, title: e.target.value })}
+                            placeholder="e.g., Mid-term Examination"
+                          />
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
                           <div>
-                            <Label htmlFor="subject">Subject *</Label>
-                            <Select
-                              value={uploadForm.subject_id}
-                              onValueChange={(value) => setUploadForm({...uploadForm, subject_id: value})}
-                              disabled={!uploadForm.branch_id}
+                            <Label htmlFor="paper-year">Year</Label>
+                            <Input
+                              id="paper-year"
+                              type="number"
+                              value={questionPaperForm.year}
+                              onChange={(e) => setQuestionPaperForm({ ...questionPaperForm, year: parseInt(e.target.value) || new Date().getFullYear() })}
+                              placeholder="2024"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="paper-month">Month</Label>
+                            <Select 
+                              value={questionPaperForm.month} 
+                              onValueChange={(value) => setQuestionPaperForm({ ...questionPaperForm, month: value })}
                             >
                               <SelectTrigger>
-                                <SelectValue placeholder="Select subject" />
+                                <SelectValue placeholder="Select month" />
                               </SelectTrigger>
                               <SelectContent>
-                                {getFilteredSubjects().map((subject) => (
-                                  <SelectItem key={subject.id} value={subject.id}>
-                                    {subject.code} - {subject.name}
-                                  </SelectItem>
-                                ))}
+                                <SelectItem value="January">January</SelectItem>
+                                <SelectItem value="February">February</SelectItem>
+                                <SelectItem value="March">March</SelectItem>
+                                <SelectItem value="April">April</SelectItem>
+                                <SelectItem value="May">May</SelectItem>
+                                <SelectItem value="June">June</SelectItem>
+                                <SelectItem value="July">July</SelectItem>
+                                <SelectItem value="August">August</SelectItem>
+                                <SelectItem value="September">September</SelectItem>
+                                <SelectItem value="October">October</SelectItem>
+                                <SelectItem value="November">November</SelectItem>
+                                <SelectItem value="December">December</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor="title">Paper Title *</Label>
-                            <Input
-                              id="title"
-                              value={uploadForm.title}
-                              onChange={(e) => setUploadForm({...uploadForm, title: e.target.value})}
-                              placeholder="e.g., Mid-term Examination - May 2023"
-                              required
-                            />
-                          </div>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div>
-                              <Label htmlFor="year">Year</Label>
-                              <Input
-                                id="year"
-                                type="number"
-                                value={uploadForm.year}
-                                onChange={(e) => setUploadForm({...uploadForm, year: e.target.value})}
-                                placeholder="2023"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="month">Month</Label>
-                              <Input
-                                id="month"
-                                value={uploadForm.month}
-                                onChange={(e) => setUploadForm({...uploadForm, month: e.target.value})}
-                                placeholder="May"
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="exam_type">Exam Type</Label>
-                              <Select
-                                value={uploadForm.exam_type}
-                                onValueChange={(value) => setUploadForm({...uploadForm, exam_type: value})}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Mid-term">Mid-term</SelectItem>
-                                  <SelectItem value="End-term">End-term</SelectItem>
-                                  <SelectItem value="Supplementary">Supplementary</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <div>
-                            <Label htmlFor="file">Question Paper File *</Label>
-                            <Input
-                              id="file"
-                              type="file"
-                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                              onChange={(e) => setUploadForm({...uploadForm, file: e.target.files?.[0] || null})}
-                              disabled={!uploadForm.subject_id}
-                              required
-                            />
-                            <p className="text-sm text-gray-500 mt-1">
-                              Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 10MB)
-                            </p>
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <Button type="button" variant="outline" onClick={() => {
-                              setShowUploadDialog(false);
-                              setUploadForm({
-                                regulation_id: "",
-                                semester_id: "",
-                                branch_id: "",
-                                subject_id: "",
-                                title: "",
-                                year: "",
-                                month: "",
-                                exam_type: "",
-                                file: null
-                              });
-                            }}>
-                              Cancel
-                            </Button>
-                            <Button 
-                              type="submit" 
-                              disabled={uploading || !uploadForm.subject_id || !uploadForm.file}
+                            <Label htmlFor="paper-exam-type">Exam Type</Label>
+                            <Select 
+                              value={questionPaperForm.exam_type} 
+                              onValueChange={(value) => setQuestionPaperForm({ ...questionPaperForm, exam_type: value })}
                             >
-                              {uploading ? 'Uploading...' : 'Upload Paper'}
-                            </Button>
-                          </div>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="max-h-[70vh] overflow-y-auto space-y-3">
-                      {questionPapers.map((paper) => (
-                        <div 
-                          key={paper.id} 
-                          className="p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => setSelectedPaper(paper)}
-                        >
-                          <h3 className="font-semibold text-sm">{paper.title}</h3>
-                          <p className="text-xs text-gray-600">{getSubjectName(paper.subject_id)}</p>
-                          <div className="flex justify-between items-center mt-2">
-                            <span className="text-xs text-gray-500">
-                              {paper.year && paper.month && `${paper.month} ${paper.year}`}
-                            </span>
-                            <div className="flex gap-1">
-                              {paper.file_url && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    window.open(paper.file_url, '_blank');
-                                  }}
-                                >
-                                  <Download className="h-3 w-3" />
-                                </Button>
-                              )}
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Question Paper</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete this question paper? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDeleteQuestionPaper(paper)}>
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </div>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Mid-term">Mid-term</SelectItem>
+                                <SelectItem value="End-term">End-term</SelectItem>
+                                <SelectItem value="Supplementary">Supplementary</SelectItem>
+                                <SelectItem value="Regular">Regular</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Paper Edit/Details Panel */}
-                <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Edit className="h-5 w-5 text-purple-600" />
-                      {selectedPaper ? 'Edit Question Paper' : 'Select a Paper to Edit'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {selectedPaper ? (
-                      <form onSubmit={(e) => handlePaperUpdate(e)} className="space-y-4">
                         <div>
-                          <Label htmlFor="edit-title">Paper Title</Label>
-                          <Input
-                            id="edit-title"
-                            value={editingPaper?.title || selectedPaper.title}
-                            onChange={(e) => setEditingPaper({
-                              ...selectedPaper,
-                              title: e.target.value
-                            })}
-                            placeholder="Enter paper title"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="edit-year">Year</Label>
-                            <Input
-                              id="edit-year"
-                              type="number"
-                              value={editingPaper?.year?.toString() || selectedPaper.year?.toString() || ""}
-                              onChange={(e) => setEditingPaper({
-                                ...selectedPaper,
-                                year: parseInt(e.target.value) || undefined
-                              })}
-                              placeholder="2023"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="edit-month">Month</Label>
-                            <Input
-                              id="edit-month"
-                              value={editingPaper?.month || selectedPaper.month || ""}
-                              onChange={(e) => setEditingPaper({
-                                ...selectedPaper,
-                                month: e.target.value
-                              })}
-                              placeholder="May"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="edit-exam-type">Exam Type</Label>
-                          <Select
-                            value={editingPaper?.exam_type || selectedPaper.exam_type || ""}
-                            onValueChange={(value) => setEditingPaper({
-                              ...selectedPaper,
-                              exam_type: value
-                            })}
+                          <Label htmlFor="paper-subject">Subject</Label>
+                          <Select 
+                            value={questionPaperForm.subject_id} 
+                            onValueChange={(value) => setQuestionPaperForm({ ...questionPaperForm, subject_id: value })}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select exam type" />
+                              <SelectValue placeholder="Select subject" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Mid-term">Mid-term</SelectItem>
-                              <SelectItem value="End-term">End-term</SelectItem>
-                              <SelectItem value="Supplementary">Supplementary</SelectItem>
+                              {subjects.map((subject) => (
+                                <SelectItem key={subject.id} value={subject.id}>
+                                  {subject.code} - {subject.name} ({subject.regulations?.code}, {subject.semesters?.name}, {subject.branches?.code})
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
-
-                        <div className="space-y-2">
-                          <Label>Current Details</Label>
-                          <div className="text-sm text-gray-600 space-y-1 p-3 bg-gray-50 rounded">
-                            <p><strong>Subject:</strong> {getSubjectName(selectedPaper.subject_id)}</p>
-                            <p><strong>File:</strong> {selectedPaper.file_name}</p>
-                            {selectedPaper.file_size && (
-                              <p><strong>Size:</strong> {formatFileSize(selectedPaper.file_size)}</p>
-                            )}
-                            <p><strong>Uploaded:</strong> {new Date(selectedPaper.created_at).toLocaleDateString()}</p>
-                          </div>
+                        <div>
+                          <Label htmlFor="paper-file">PDF File</Label>
+                          <Input
+                            id="paper-file"
+                            type="file"
+                            accept=".pdf"
+                            onChange={(e) => setQuestionPaperForm({ ...questionPaperForm, file: e.target.files?.[0] || null })}
+                          />
                         </div>
-
-                        <div className="flex gap-2">
-                          <Button
-                            type="submit"
-                            className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                          >
-                            Update Paper
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedPaper(null);
-                              setEditingPaper(null);
-                            }}
-                          >
-                            Cancel
-                          </Button>
-                          {selectedPaper.file_url && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => window.open(selectedPaper.file_url, '_blank')}
-                            >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
+                        <Button 
+                          onClick={handleSaveQuestionPaper} 
+                          className="w-full"
+                          disabled={uploading}
+                        >
+                          {uploading ? 'Uploading...' : editingQuestionPaper ? 'Update' : 'Create'} Question Paper
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {questionPapers.map((paper) => (
+                      <div key={paper.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <h3 className="font-medium">{paper.title}</h3>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline">{paper.year}</Badge>
+                            <Badge variant="outline">{paper.month}</Badge>
+                            <Badge variant="outline">{paper.exam_type}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {paper.subjects?.code} - {paper.subjects?.name}
+                          </p>
+                          {paper.file_size && (
+                            <p className="text-xs text-muted-foreground">
+                              File size: {formatFileSize(paper.file_size)}
+                            </p>
                           )}
                         </div>
-                      </form>
-                    ) : (
-                      <div className="text-center text-gray-500 py-8">
-                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                        <p>Select a question paper from the list to view and edit details</p>
+                        <div className="flex items-center gap-2">
+                          {paper.file_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(paper.file_url, '_blank')}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingQuestionPaper(paper);
+                              setQuestionPaperForm({
+                                title: paper.title,
+                                year: paper.year || new Date().getFullYear(),
+                                month: paper.month || '',
+                                exam_type: paper.exam_type || '',
+                                subject_id: paper.subject_id,
+                                file: null
+                              });
+                              setShowQuestionPaperDialog(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteQuestionPaper(paper.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                     )}
-                  </CardContent>
-                </Card>
-              </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>
