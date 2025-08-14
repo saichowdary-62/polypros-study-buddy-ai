@@ -111,16 +111,16 @@ const AdminPanel = () => {
   });
 
   // // Password authentication
-  // const handlePasswordSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (password === "teampoly") {
-  //     setIsAuthenticated(true);
-  //     toast.success("Access granted");
-  //   } else {
-  //     toast.error("Incorrect password");
-  //     setPassword("");
-  //   }
-  // };
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === "teampoly") {
+      setIsAuthenticated(true);
+      toast.success("Access granted");
+    } else {
+      toast.error("Incorrect password");
+      setPassword("");
+    }
+  };
 
   // Load all data on component mount
   useEffect(() => {
