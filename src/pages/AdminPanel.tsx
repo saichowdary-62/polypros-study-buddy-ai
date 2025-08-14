@@ -59,7 +59,7 @@ interface QuestionPaper {
 const AdminPanel = () => {
   const navigate = useNavigate();
   
-  // // Password protection state
+  // Password protection state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -110,7 +110,7 @@ const AdminPanel = () => {
     file: null as File | null
   });
 
-  // // Password authentication
+  // Password authentication
   const handlePasswordSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === "teampoly") {
@@ -634,7 +634,7 @@ const AdminPanel = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => loadAllData();}
+                  onClick={() => navigate("/")}
                   className="flex items-center gap-2"
                 >
                   <Home className="h-4 w-4" />
