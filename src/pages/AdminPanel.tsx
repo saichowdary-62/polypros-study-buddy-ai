@@ -58,6 +58,7 @@ interface QuestionPaper {
 
 const AdminPanel = () => {
   const navigate = useNavigate();
+  const isAuthenticated = true;
   const isAuthenticated = true; // Password removed - always authenticated
   
   // Password protection state
@@ -599,43 +600,6 @@ const AdminPanel = () => {
     );
   };
 
-  // Password protection screen
-   className="space-y-4">
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password"
-                  className="w-full"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                >
-                  Access Admin Panel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate("/")}
-                  className="flex items-center gap-2"
-                >
-                  <Home className="h-4 w-4" />
-                  Home
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
       {/* Animated Background Elements */}
@@ -672,7 +636,7 @@ const AdminPanel = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setIsAuthenticated(false)}
+                // Logout removed
                 className="text-red-600 hover:text-red-700"
               >
                 Logout
