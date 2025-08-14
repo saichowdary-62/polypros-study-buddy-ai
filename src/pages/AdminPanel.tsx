@@ -634,7 +634,7 @@ const AdminPanel = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => navigate("/")}
+                  onClick={() => loadAllData();}
                   className="flex items-center gap-2"
                 >
                   <Home className="h-4 w-4" />
