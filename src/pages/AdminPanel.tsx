@@ -694,7 +694,7 @@ const AdminPanel = () => {
           {/* Header */}
           <div className="text-center mb-8 animate-fade-in">
             <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4">
-              Admin Panel
+              dappadi
             </h1>
             <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
               Manage regulations, semesters, branches, subjects, and question papers
