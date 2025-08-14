@@ -52,9 +52,9 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2 animate-fade-in">
               <Bot className="h-8 w-8 text-blue-600 animate-bounce" />
-              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
+              <span className="text-xl sm:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
             </div>
-            <div className="flex space-x-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <div className="hidden sm:flex space-x-8 animate-fade-in" style={{ animationDelay: '0.3s' }}>
               <Link to="/" className="text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 relative group">
                 Home
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
@@ -72,6 +72,13 @@ const Index = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
             </div>
+            {/* Mobile menu button */}
+            <div className="sm:hidden">
+              <div className="flex space-x-4 text-sm">
+                <Link to="/question-papers" className="text-gray-700 hover:text-blue-600 transition-colors">Papers</Link>
+                <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">About</Link>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -80,17 +87,17 @@ const Index = () => {
       <section className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
               PolyPros Study Assistant
             </h1>
-            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+            <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-2xl mx-auto animate-fade-in-delayed opacity-0 px-4" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
               Get instant help with SBTET AP polytechnic subjects
             </p>
             <div className="animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
               <Button
                 onClick={handleChatbotClick}
                 size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 text-base font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform group relative overflow-hidden"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
                 <MessageCircle className="mr-2 h-4 w-4" />
@@ -104,7 +111,7 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 bg-white/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.1s' }}>
               <Link to="/question-papers" className="block">
                 <FeatureCard
@@ -130,16 +137,16 @@ const Index = () => {
       {/* Support Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-blue-50">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">
+          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 animate-fade-in">
+            <h3 className="text-xl sm:text-2xl font-bold text-blue-900 mb-4">
               💝 Support PolyPros Development
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-6">
               Help us keep PolyPros free and accessible for all SBTET AP students
             </p>
-            <div className="bg-blue-50 rounded-lg p-4 mb-6">
-              <p className="text-blue-700 font-semibold">
-                Donate via UPI: <span className="font-mono text-lg">918688673113@upi</span>
+            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-6">
+              <p className="text-blue-700 font-semibold text-sm sm:text-base">
+                Donate via UPI: <span className="font-mono text-sm sm:text-lg break-all">918688673113@upi</span>
               </p>
             </div>
             <p className="text-sm text-gray-500">
@@ -156,30 +163,30 @@ const Index = () => {
           <div className="text-center animate-fade-in">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <Bot className="h-8 w-8 text-blue-400 animate-pulse" />
-              <span className="text-2xl font-bold">PolyPros</span>
+              <span className="text-xl sm:text-2xl font-bold">PolyPros</span>
             </div>
-            <p className="text-blue-200 mb-6">
+            <p className="text-sm sm:text-base text-blue-200 mb-6 px-4">
               Your trusted PolyPros study companion for polytechnic success
             </p>
             
             {/* Contact Information */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-8 px-4">
               <div className="flex items-center justify-center space-x-2 hover:scale-105 transition-transform duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
                 <Mail className="h-5 w-5 text-blue-400 animate-pulse" />
-                <span className="text-blue-200">ropebitlabs@gmail.com</span>
+                <span className="text-blue-200 text-sm sm:text-base break-all">ropebitlabs@gmail.com</span>
               </div>
               <div className="flex items-center justify-center space-x-2 hover:scale-105 transition-transform duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 <Phone className="h-5 w-5 text-blue-400 animate-pulse" />
-                <span className="text-blue-200">8712403113</span>
+                <span className="text-blue-200 text-sm sm:text-base">8712403113</span>
               </div>
-              <div className="flex items-center justify-center space-x-2 hover:scale-105 transition-transform duration-300 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <div className="flex items-center justify-center space-x-2 hover:scale-105 transition-transform duration-300 animate-fade-in sm:col-span-2 md:col-span-1" style={{ animationDelay: '0.3s' }}>
                 <Instagram className="h-5 w-5 text-blue-400 animate-pulse" />
-                <span className="text-blue-200">@aditya_poly_pros</span>
+                <span className="text-blue-200 text-sm sm:text-base">@aditya_poly_pros</span>
               </div>
             </div>
             
             <div className="border-t border-blue-800 pt-8 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-              <p className="text-blue-300">
+              <p className="text-blue-300 text-xs sm:text-sm px-4">
                 © 2025 PolyPros | Created by Aditya Polytechnic College students with Ropebit Labs
               </p>
             </div>
@@ -204,10 +211,10 @@ const Index = () => {
             
             {/* Loading Text */}
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold text-blue-900 animate-pulse">
+              <h2 className="text-xl sm:text-2xl font-bold text-blue-900 animate-pulse">
                 🍳 PolyPros is cooking up answers...
               </h2>
-              <p className="text-gray-600 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+              <p className="text-sm sm:text-base text-gray-600 animate-fade-in" style={{ animationDelay: '0.5s' }}>
                 Preparing your study assistant
               </p>
             </div>
@@ -224,7 +231,7 @@ const Index = () => {
 
       {/* Browser Recommendation Popup */}
       <Dialog open={showBrowserPopup} onOpenChange={setShowBrowserPopup}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm mx-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Chrome className="h-5 w-5 text-blue-600" />

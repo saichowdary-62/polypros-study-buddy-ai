@@ -208,16 +208,17 @@ const QuestionPapers = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
               <BookOpen className="h-8 w-8 text-blue-600 animate-bounce" />
-              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
+              <span className="text-xl sm:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
             </div>
             <div className="flex space-x-8">
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105 text-sm sm:text-base"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Home
+                <span className="hidden sm:inline">Back to Home</span>
+                <span className="sm:hidden">Back</span>
               </Button>
             </div>
           </div>
@@ -228,10 +229,10 @@ const QuestionPapers = () => {
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
               Previous Question Papers
             </h1>
-            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-2xl mx-auto px-4">
               Find and download question papers for SBTET AP diploma courses
             </p>
           </div>
@@ -245,7 +246,7 @@ const QuestionPapers = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Regulation */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Regulation</label>
@@ -350,11 +351,11 @@ const QuestionPapers = () => {
                   {questionPapers.map((paper) => (
                     <div
                       key={paper.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-4"
                     >
                       <div className="flex-1">
                         <h3 className="font-medium text-foreground">{paper.title}</h3>
-                        <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {paper.month} {paper.year}
@@ -369,7 +370,7 @@ const QuestionPapers = () => {
                       </div>
                       <Button
                         onClick={() => handleDownload(paper)}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 w-full sm:w-auto"
                         size="sm"
                       >
                         <Download className="h-4 w-4" />
