@@ -97,6 +97,7 @@ const AdminPanel = () => {
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [filteredSubjects, setFilteredSubjects] = useState<Subject[]>([]);
   const [questionPapers, setQuestionPapers] = useState<QuestionPaper[]>([]);
 
   // Form states
@@ -134,6 +135,21 @@ const AdminPanel = () => {
       loadAllData();
     }
   }, []);
+
+  // Filter subjects based on selected regulation, semester, and branch
+  useEffect(() => {
+    if (selectedRegulation && selectedSemester && selectedBranch) {
+      const filtered = subjects.filter(subject => 
+        subject.regulation_id === selectedRegulation &&
+        subject.semester_id === selectedSemester &&
+        subject.branch_id === selectedBranch
+      );
+      setFilteredSubjects(filtered);
+    } else {
+      setFilteredSubjects([]);
+    }
+    setSelectedSubject(""); // Reset subject selection when filters change
+  }, [selectedRegulation, selectedSemester, selectedBranch, subjects]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
