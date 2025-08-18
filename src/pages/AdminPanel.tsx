@@ -6,9 +6,27 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Plus, Upload, Download, RefreshCw, ArrowLeft, FileText, BookOpen, GraduationCap, Building } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Upload, 
+  Download, 
+  FileText, 
+  BookOpen, 
+  GraduationCap, 
+  Building, 
+  Calendar,
+  ArrowLeft,
+  Lock,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -41,9 +59,9 @@ interface Subject {
   regulation_id: string;
   semester_id: string;
   branch_id: string;
-  regulations?: Regulation;
-  semesters?: Semester;
-  branches?: Branch;
+  regulations?: { code: string; name: string };
+  semesters?: { name: string };
+  branches?: { code: string; name: string };
 }
 
 interface QuestionPaper {
@@ -56,62 +74,85 @@ interface QuestionPaper {
   file_name?: string;
   file_size?: number;
   subject_id: string;
-  subjects?: Subject;
+  subjects?: {
+    code: string;
+    name: string;
+    regulations?: { code: string };
+    semesters?: { name: string };
+    branches?: { code: string };
+  };
 }
 
 const AdminPanel = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // State for all entities
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+
+  // Data states
   const [regulations, setRegulations] = useState<Regulation[]>([]);
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [questionPapers, setQuestionPapers] = useState<QuestionPaper[]>([]);
-  
-  // Loading states
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  
-  // Form states
-  const [editingRegulation, setEditingRegulation] = useState<Regulation | null>(null);
-  const [editingSemester, setEditingSemester] = useState<Semester | null>(null);
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
-  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-  const [editingQuestionPaper, setEditingQuestionPaper] = useState<QuestionPaper | null>(null);
-  
-  // Dialog states
-  const [showRegulationDialog, setShowRegulationDialog] = useState(false);
-  const [showSemesterDialog, setShowSemesterDialog] = useState(false);
-  const [showBranchDialog, setShowBranchDialog] = useState(false);
-  const [showSubjectDialog, setShowSubjectDialog] = useState(false);
-  const [showQuestionPaperDialog, setShowQuestionPaperDialog] = useState(false);
 
-  // Form data
-  const [regulationForm, setRegulationForm] = useState({ code: '', name: '', description: '' });
-  const [semesterForm, setSemesterForm] = useState({ number: 0, name: '' });
-  const [branchForm, setBranchForm] = useState({ code: '', name: '', description: '' });
+  // Form states
+  const [activeTab, setActiveTab] = useState("regulations");
+  const [loading, setLoading] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [showDialog, setShowDialog] = useState(false);
+
+  // Form data states
+  const [regulationForm, setRegulationForm] = useState({ code: "", name: "", description: "" });
+  const [semesterForm, setSemesterForm] = useState({ number: "", name: "" });
+  const [branchForm, setBranchForm] = useState({ code: "", name: "", description: "" });
   const [subjectForm, setSubjectForm] = useState({ 
-    code: '', 
-    name: '', 
-    description: '', 
-    regulation_id: '', 
-    semester_id: '', 
-    branch_id: '' 
+    code: "", 
+    name: "", 
+    description: "", 
+    regulation_id: "", 
+    semester_id: "", 
+    branch_id: "" 
   });
-  const [questionPaperForm, setQuestionPaperForm] = useState({
-    title: '',
-    year: new Date().getFullYear(),
-    month: '',
-    exam_type: '',
-    subject_id: '',
+  const [paperForm, setPaperForm] = useState({
+    title: "",
+    year: "",
+    month: "",
+    exam_type: "",
+    subject_id: "",
     file: null as File | null
   });
 
+  // Check authentication on component mount
   useEffect(() => {
-    loadAllData();
+    const authStatus = localStorage.getItem("admin_auth");
+    if (authStatus === "true") {
+      setIsAuthenticated(true);
+      loadAllData();
+    }
   }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === "srmt") {
+      setIsAuthenticated(true);
+      localStorage.setItem("admin_auth", "true");
+      setAuthError("");
+      loadAllData();
+    } else {
+      setAuthError("Incorrect password");
+      setPassword("");
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("admin_auth");
+    setPassword("");
+  };
 
   const loadAllData = async () => {
     setLoading(true);
@@ -124,7 +165,7 @@ const AdminPanel = () => {
         loadQuestionPapers()
       ]);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error("Error loading data:", error);
       toast({ title: "Error loading data", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -138,11 +179,11 @@ const AdminPanel = () => {
       .order('code');
     
     if (error) {
-      console.error('Error loading regulations:', error);
-      return;
+      console.error("Error loading regulations:", error);
+      toast({ title: "Error loading regulations", variant: "destructive" });
+    } else {
+      setRegulations(data || []);
     }
-    
-    setRegulations(data || []);
   };
 
   const loadSemesters = async () => {
@@ -152,11 +193,11 @@ const AdminPanel = () => {
       .order('number');
     
     if (error) {
-      console.error('Error loading semesters:', error);
-      return;
+      console.error("Error loading semesters:", error);
+      toast({ title: "Error loading semesters", variant: "destructive" });
+    } else {
+      setSemesters(data || []);
     }
-    
-    setSemesters(data || []);
   };
 
   const loadBranches = async () => {
@@ -166,11 +207,11 @@ const AdminPanel = () => {
       .order('code');
     
     if (error) {
-      console.error('Error loading branches:', error);
-      return;
+      console.error("Error loading branches:", error);
+      toast({ title: "Error loading branches", variant: "destructive" });
+    } else {
+      setBranches(data || []);
     }
-    
-    setBranches(data || []);
   };
 
   const loadSubjects = async () => {
@@ -179,17 +220,17 @@ const AdminPanel = () => {
       .select(`
         *,
         regulations(code, name),
-        semesters(number, name),
+        semesters(name),
         branches(code, name)
       `)
       .order('code');
     
     if (error) {
-      console.error('Error loading subjects:', error);
-      return;
+      console.error("Error loading subjects:", error);
+      toast({ title: "Error loading subjects", variant: "destructive" });
+    } else {
+      setSubjects(data || []);
     }
-    
-    setSubjects(data || []);
   };
 
   const loadQuestionPapers = async () => {
@@ -200,29 +241,32 @@ const AdminPanel = () => {
         subjects(
           code,
           name,
-          regulations(code, name),
-          semesters(number, name),
-          branches(code, name)
+          regulations(code),
+          semesters(name),
+          branches(code)
         )
       `)
       .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('Error loading question papers:', error);
-      return;
+      console.error("Error loading question papers:", error);
+      toast({ title: "Error loading question papers", variant: "destructive" });
+    } else {
+      setQuestionPapers(data || []);
     }
-    
-    setQuestionPapers(data || []);
   };
 
-  // CRUD operations for Regulations
-  const handleSaveRegulation = async () => {
+  // CRUD Operations for Regulations
+  const handleRegulationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      if (editingRegulation) {
+      if (editingItem) {
         const { error } = await supabase
           .from('regulations')
           .update(regulationForm)
-          .eq('id', editingRegulation.id);
+          .eq('id', editingItem.id);
         
         if (error) throw error;
         toast({ title: "Regulation updated successfully" });
@@ -235,17 +279,26 @@ const AdminPanel = () => {
         toast({ title: "Regulation created successfully" });
       }
       
-      setShowRegulationDialog(false);
-      setEditingRegulation(null);
-      setRegulationForm({ code: '', name: '', description: '' });
+      setRegulationForm({ code: "", name: "", description: "" });
+      setEditingItem(null);
+      setShowDialog(false);
       loadRegulations();
-    } catch (error) {
-      console.error('Error saving regulation:', error);
-      toast({ title: "Error saving regulation", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error saving regulation:", error);
+      toast({ 
+        title: "Error saving regulation", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteRegulation = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this regulation?")) return;
+    
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('regulations')
@@ -255,43 +308,66 @@ const AdminPanel = () => {
       if (error) throw error;
       toast({ title: "Regulation deleted successfully" });
       loadRegulations();
-    } catch (error) {
-      console.error('Error deleting regulation:', error);
-      toast({ title: "Error deleting regulation", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error deleting regulation:", error);
+      toast({ 
+        title: "Error deleting regulation", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // CRUD operations for Semesters
-  const handleSaveSemester = async () => {
+  // CRUD Operations for Semesters
+  const handleSemesterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      if (editingSemester) {
+      const semesterData = {
+        number: parseInt(semesterForm.number),
+        name: semesterForm.name
+      };
+
+      if (editingItem) {
         const { error } = await supabase
           .from('semesters')
-          .update(semesterForm)
-          .eq('id', editingSemester.id);
+          .update(semesterData)
+          .eq('id', editingItem.id);
         
         if (error) throw error;
         toast({ title: "Semester updated successfully" });
       } else {
         const { error } = await supabase
           .from('semesters')
-          .insert([semesterForm]);
+          .insert([semesterData]);
         
         if (error) throw error;
         toast({ title: "Semester created successfully" });
       }
       
-      setShowSemesterDialog(false);
-      setEditingSemester(null);
-      setSemesterForm({ number: 0, name: '' });
+      setSemesterForm({ number: "", name: "" });
+      setEditingItem(null);
+      setShowDialog(false);
       loadSemesters();
-    } catch (error) {
-      console.error('Error saving semester:', error);
-      toast({ title: "Error saving semester", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error saving semester:", error);
+      toast({ 
+        title: "Error saving semester", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteSemester = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this semester?")) return;
+    
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('semesters')
@@ -301,20 +377,29 @@ const AdminPanel = () => {
       if (error) throw error;
       toast({ title: "Semester deleted successfully" });
       loadSemesters();
-    } catch (error) {
-      console.error('Error deleting semester:', error);
-      toast({ title: "Error deleting semester", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error deleting semester:", error);
+      toast({ 
+        title: "Error deleting semester", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // CRUD operations for Branches
-  const handleSaveBranch = async () => {
+  // CRUD Operations for Branches
+  const handleBranchSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      if (editingBranch) {
+      if (editingItem) {
         const { error } = await supabase
           .from('branches')
           .update(branchForm)
-          .eq('id', editingBranch.id);
+          .eq('id', editingItem.id);
         
         if (error) throw error;
         toast({ title: "Branch updated successfully" });
@@ -327,17 +412,26 @@ const AdminPanel = () => {
         toast({ title: "Branch created successfully" });
       }
       
-      setShowBranchDialog(false);
-      setEditingBranch(null);
-      setBranchForm({ code: '', name: '', description: '' });
+      setBranchForm({ code: "", name: "", description: "" });
+      setEditingItem(null);
+      setShowDialog(false);
       loadBranches();
-    } catch (error) {
-      console.error('Error saving branch:', error);
-      toast({ title: "Error saving branch", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error saving branch:", error);
+      toast({ 
+        title: "Error saving branch", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteBranch = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this branch?")) return;
+    
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('branches')
@@ -347,20 +441,29 @@ const AdminPanel = () => {
       if (error) throw error;
       toast({ title: "Branch deleted successfully" });
       loadBranches();
-    } catch (error) {
-      console.error('Error deleting branch:', error);
-      toast({ title: "Error deleting branch", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error deleting branch:", error);
+      toast({ 
+        title: "Error deleting branch", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // CRUD operations for Subjects
-  const handleSaveSubject = async () => {
+  // CRUD Operations for Subjects
+  const handleSubjectSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      if (editingSubject) {
+      if (editingItem) {
         const { error } = await supabase
           .from('subjects')
           .update(subjectForm)
-          .eq('id', editingSubject.id);
+          .eq('id', editingItem.id);
         
         if (error) throw error;
         toast({ title: "Subject updated successfully" });
@@ -373,24 +476,33 @@ const AdminPanel = () => {
         toast({ title: "Subject created successfully" });
       }
       
-      setShowSubjectDialog(false);
-      setEditingSubject(null);
       setSubjectForm({ 
-        code: '', 
-        name: '', 
-        description: '', 
-        regulation_id: '', 
-        semester_id: '', 
-        branch_id: '' 
+        code: "", 
+        name: "", 
+        description: "", 
+        regulation_id: "", 
+        semester_id: "", 
+        branch_id: "" 
       });
+      setEditingItem(null);
+      setShowDialog(false);
       loadSubjects();
-    } catch (error) {
-      console.error('Error saving subject:', error);
-      toast({ title: "Error saving subject", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error saving subject:", error);
+      toast({ 
+        title: "Error saving subject", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteSubject = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this subject?")) return;
+    
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('subjects')
@@ -400,55 +512,74 @@ const AdminPanel = () => {
       if (error) throw error;
       toast({ title: "Subject deleted successfully" });
       loadSubjects();
-    } catch (error) {
-      console.error('Error deleting subject:', error);
-      toast({ title: "Error deleting subject", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error deleting subject:", error);
+      toast({ 
+        title: "Error deleting subject", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // CRUD operations for Question Papers
-  const handleSaveQuestionPaper = async () => {
+  // CRUD Operations for Question Papers
+  const handlePaperSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      setUploading(true);
-      
-      let fileUrl = '';
-      let fileName = '';
+      let fileUrl = "";
+      let fileName = "";
       let fileSize = 0;
-      
-      if (questionPaperForm.file) {
-        const file = questionPaperForm.file;
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${Date.now()}-${Math.random()}.${fileExt}`;
+
+      // Upload file if provided
+      if (paperForm.file) {
+        const fileExt = paperForm.file.name.split('.').pop();
+        const filePath = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('question-papers')
-          .upload(filePath, file);
-        
-        if (uploadError) throw uploadError;
-        
+          .upload(filePath, paperForm.file);
+
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          throw new Error(`File upload failed: ${uploadError.message}`);
+        }
+
         const { data: { publicUrl } } = supabase.storage
           .from('question-papers')
           .getPublicUrl(filePath);
-        
+
         fileUrl = publicUrl;
-        fileName = file.name;
-        fileSize = file.size;
+        fileName = paperForm.file.name;
+        fileSize = paperForm.file.size;
       }
-      
+
       const paperData = {
-        title: questionPaperForm.title,
-        year: questionPaperForm.year,
-        month: questionPaperForm.month,
-        exam_type: questionPaperForm.exam_type,
-        subject_id: questionPaperForm.subject_id,
-        ...(fileUrl && { file_url: fileUrl, file_name: fileName, file_size: fileSize })
+        title: paperForm.title,
+        year: paperForm.year ? parseInt(paperForm.year) : null,
+        month: paperForm.month || null,
+        exam_type: paperForm.exam_type || null,
+        subject_id: paperForm.subject_id,
+        file_url: fileUrl || null,
+        file_name: fileName || null,
+        file_size: fileSize || null
       };
-      
-      if (editingQuestionPaper) {
+
+      if (editingItem) {
+        // If editing and no new file, keep existing file data
+        if (!paperForm.file) {
+          delete paperData.file_url;
+          delete paperData.file_name;
+          delete paperData.file_size;
+        }
+
         const { error } = await supabase
           .from('question_papers')
           .update(paperData)
-          .eq('id', editingQuestionPaper.id);
+          .eq('id', editingItem.id);
         
         if (error) throw error;
         toast({ title: "Question paper updated successfully" });
@@ -461,26 +592,33 @@ const AdminPanel = () => {
         toast({ title: "Question paper created successfully" });
       }
       
-      setShowQuestionPaperDialog(false);
-      setEditingQuestionPaper(null);
-      setQuestionPaperForm({
-        title: '',
-        year: new Date().getFullYear(),
-        month: '',
-        exam_type: '',
-        subject_id: '',
+      setPaperForm({
+        title: "",
+        year: "",
+        month: "",
+        exam_type: "",
+        subject_id: "",
         file: null
       });
+      setEditingItem(null);
+      setShowDialog(false);
       loadQuestionPapers();
-    } catch (error) {
-      console.error('Error saving question paper:', error);
-      toast({ title: "Error saving question paper", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error saving question paper:", error);
+      toast({ 
+        title: "Error saving question paper", 
+        description: error.message,
+        variant: "destructive" 
+      });
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
-  const handleDeleteQuestionPaper = async (id: string) => {
+  const handleDeletePaper = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this question paper?")) return;
+    
+    setLoading(true);
     try {
       const { error } = await supabase
         .from('question_papers')
@@ -490,12 +628,75 @@ const AdminPanel = () => {
       if (error) throw error;
       toast({ title: "Question paper deleted successfully" });
       loadQuestionPapers();
-    } catch (error) {
-      console.error('Error deleting question paper:', error);
-      toast({ title: "Error deleting question paper", variant: "destructive" });
+    } catch (error: any) {
+      console.error("Error deleting question paper:", error);
+      toast({ 
+        title: "Error deleting question paper", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Edit handlers
+  const handleEditRegulation = (regulation: Regulation) => {
+    setRegulationForm({
+      code: regulation.code,
+      name: regulation.name,
+      description: regulation.description || ""
+    });
+    setEditingItem(regulation);
+    setShowDialog(true);
+  };
+
+  const handleEditSemester = (semester: Semester) => {
+    setSemesterForm({
+      number: semester.number.toString(),
+      name: semester.name
+    });
+    setEditingItem(semester);
+    setShowDialog(true);
+  };
+
+  const handleEditBranch = (branch: Branch) => {
+    setBranchForm({
+      code: branch.code,
+      name: branch.name,
+      description: branch.description || ""
+    });
+    setEditingItem(branch);
+    setShowDialog(true);
+  };
+
+  const handleEditSubject = (subject: Subject) => {
+    setSubjectForm({
+      code: subject.code,
+      name: subject.name,
+      description: subject.description || "",
+      regulation_id: subject.regulation_id,
+      semester_id: subject.semester_id,
+      branch_id: subject.branch_id
+    });
+    setEditingItem(subject);
+    setShowDialog(true);
+  };
+
+  const handleEditPaper = (paper: QuestionPaper) => {
+    setPaperForm({
+      title: paper.title,
+      year: paper.year?.toString() || "",
+      month: paper.month || "",
+      exam_type: paper.exam_type || "",
+      subject_id: paper.subject_id,
+      file: null
+    });
+    setEditingItem(paper);
+    setShowDialog(true);
+  };
+
+  // Utility functions
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -504,28 +705,76 @@ const AdminPanel = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-20 h-20 bg-blue-200 rounded-full opacity-20 animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-16 h-16 bg-purple-200 rounded-full opacity-30 animate-bounce" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-40 left-20 w-24 h-24 bg-blue-300 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-60 left-1/3 w-12 h-12 bg-purple-300 rounded-full opacity-25 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
-        <div className="absolute bottom-60 right-1/4 w-18 h-18 bg-blue-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-      </div>
+  const resetForms = () => {
+    setRegulationForm({ code: "", name: "", description: "" });
+    setSemesterForm({ number: "", name: "" });
+    setBranchForm({ code: "", name: "", description: "" });
+    setSubjectForm({ 
+      code: "", 
+      name: "", 
+      description: "", 
+      regulation_id: "", 
+      semester_id: "", 
+      branch_id: "" 
+    });
+    setPaperForm({
+      title: "",
+      year: "",
+      month: "",
+      exam_type: "",
+      subject_id: "",
+      file: null
+    });
+    setEditingItem(null);
+  };
 
+  // Authentication screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md border-border/50 shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+              <Lock className="h-6 w-6 text-primary" />
+              Admin Access
+            </CardTitle>
+            <p className="text-muted-foreground">Enter password to access admin panel</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Input
+                  type="password"
+                  placeholder="Enter admin password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full"
+                />
+                {authError && <p className="text-sm text-red-500 mt-2">{authError}</p>}
+              </div>
+              <Button type="submit" className="w-full">
+                Access Admin Panel
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Navigation */}
-      <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50">
+      <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-blue-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              <GraduationCap className="h-8 w-8 text-blue-600 animate-bounce" />
-              <span className="text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">Admin Panel</span>
+              <GraduationCap className="h-8 w-8 text-blue-600" />
+              <span className="text-xl sm:text-2xl font-bold text-blue-900">Admin Panel</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => loadAllData()}
                 disabled={loading}
                 className="flex items-center gap-2"
@@ -534,728 +783,734 @@ const AdminPanel = () => {
                 Refresh
               </Button>
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 onClick={() => navigate('/')}
-                className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-all duration-300 hover:scale-105"
+                className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Home
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
               </Button>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-900 mb-4 animate-slide-up">
-              Admin Dashboard
-            </h1>
-            <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
-              Manage regulations, semesters, branches, subjects, and question papers
-            </p>
-          </div>
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-blue-900 mb-2">Question Papers Management</h1>
+          <p className="text-gray-600">Manage regulations, semesters, branches, subjects, and question papers</p>
+        </div>
 
-          <Tabs defaultValue="regulations" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="regulations" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Regulations
-              </TabsTrigger>
-              <TabsTrigger value="semesters" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Semesters
-              </TabsTrigger>
-              <TabsTrigger value="branches" className="flex items-center gap-2">
-                <Building className="h-4 w-4" />
-                Branches
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
-                Subjects
-              </TabsTrigger>
-              <TabsTrigger value="papers" className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Question Papers
-              </TabsTrigger>
-            </TabsList>
+        {/* Main Content */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="regulations" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Regulations</span>
+            </TabsTrigger>
+            <TabsTrigger value="semesters" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Semesters</span>
+            </TabsTrigger>
+            <TabsTrigger value="branches" className="flex items-center gap-2">
+              <Building className="h-4 w-4" />
+              <span className="hidden sm:inline">Branches</span>
+            </TabsTrigger>
+            <TabsTrigger value="subjects" className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              <span className="hidden sm:inline">Subjects</span>
+            </TabsTrigger>
+            <TabsTrigger value="papers" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Papers</span>
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Regulations Tab */}
-            <TabsContent value="regulations">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Regulations
-                  </CardTitle>
-                  <Dialog open={showRegulationDialog} onOpenChange={setShowRegulationDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setEditingRegulation(null);
-                          setRegulationForm({ code: '', name: '', description: '' });
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Regulation
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingRegulation ? 'Edit Regulation' : 'Add New Regulation'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="reg-code">Code</Label>
-                          <Input
-                            id="reg-code"
-                            value={regulationForm.code}
-                            onChange={(e) => setRegulationForm({ ...regulationForm, code: e.target.value })}
-                            placeholder="e.g., C20"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="reg-name">Name</Label>
-                          <Input
-                            id="reg-name"
-                            value={regulationForm.name}
-                            onChange={(e) => setRegulationForm({ ...regulationForm, name: e.target.value })}
-                            placeholder="e.g., C20 Regulation"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="reg-desc">Description</Label>
-                          <Textarea
-                            id="reg-desc"
-                            value={regulationForm.description}
-                            onChange={(e) => setRegulationForm({ ...regulationForm, description: e.target.value })}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <Button onClick={handleSaveRegulation} className="w-full">
-                          {editingRegulation ? 'Update' : 'Create'} Regulation
-                        </Button>
+          {/* Regulations Tab */}
+          <TabsContent value="regulations" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Regulations Management
+                </CardTitle>
+                <Dialog open={showDialog && activeTab === "regulations"} onOpenChange={setShowDialog}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetForms(); setShowDialog(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Regulation
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingItem ? "Edit Regulation" : "Add New Regulation"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleRegulationSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="code">Code</Label>
+                        <Input
+                          id="code"
+                          value={regulationForm.code}
+                          onChange={(e) => setRegulationForm({...regulationForm, code: e.target.value})}
+                          placeholder="e.g., C20, C23"
+                          required
+                        />
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          value={regulationForm.name}
+                          onChange={(e) => setRegulationForm({...regulationForm, name: e.target.value})}
+                          placeholder="e.g., Curriculum 2020"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={regulationForm.description}
+                          onChange={(e) => setRegulationForm({...regulationForm, description: e.target.value})}
+                          placeholder="Optional description"
+                        />
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? "Saving..." : editingItem ? "Update" : "Create"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {regulations.map((regulation) => (
-                      <div key={regulation.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-medium">{regulation.code} - {regulation.name}</h3>
-                          {regulation.description && (
-                            <p className="text-sm text-muted-foreground">{regulation.description}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingRegulation(regulation);
-                              setRegulationForm({
-                                code: regulation.code,
-                                name: regulation.name,
-                                description: regulation.description || ''
-                              });
-                              setShowRegulationDialog(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteRegulation(regulation.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                      <TableRow key={regulation.id}>
+                        <TableCell>
+                          <Badge variant="outline">{regulation.code}</Badge>
+                        </TableCell>
+                        <TableCell>{regulation.name}</TableCell>
+                        <TableCell>{regulation.description || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditRegulation(regulation)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteRegulation(regulation.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Semesters Tab */}
-            <TabsContent value="semesters">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
-                    Semesters
-                  </CardTitle>
-                  <Dialog open={showSemesterDialog} onOpenChange={setShowSemesterDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setEditingSemester(null);
-                          setSemesterForm({ number: 0, name: '' });
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Semester
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingSemester ? 'Edit Semester' : 'Add New Semester'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="sem-number">Number</Label>
-                          <Input
-                            id="sem-number"
-                            type="number"
-                            value={semesterForm.number}
-                            onChange={(e) => setSemesterForm({ ...semesterForm, number: parseInt(e.target.value) || 0 })}
-                            placeholder="e.g., 1"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="sem-name">Name</Label>
-                          <Input
-                            id="sem-name"
-                            value={semesterForm.name}
-                            onChange={(e) => setSemesterForm({ ...semesterForm, name: e.target.value })}
-                            placeholder="e.g., 1st Semester"
-                          />
-                        </div>
-                        <Button onClick={handleSaveSemester} className="w-full">
-                          {editingSemester ? 'Update' : 'Create'} Semester
-                        </Button>
+          {/* Semesters Tab */}
+          <TabsContent value="semesters" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Semesters Management
+                </CardTitle>
+                <Dialog open={showDialog && activeTab === "semesters"} onOpenChange={setShowDialog}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetForms(); setShowDialog(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Semester
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingItem ? "Edit Semester" : "Add New Semester"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSemesterSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="number">Semester Number</Label>
+                        <Input
+                          id="number"
+                          type="number"
+                          value={semesterForm.number}
+                          onChange={(e) => setSemesterForm({...semesterForm, number: e.target.value})}
+                          placeholder="e.g., 1, 2, 3"
+                          required
+                        />
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          value={semesterForm.name}
+                          onChange={(e) => setSemesterForm({...semesterForm, name: e.target.value})}
+                          placeholder="e.g., 1st & 2nd Semester"
+                          required
+                        />
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? "Saving..." : editingItem ? "Update" : "Create"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Number</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {semesters.map((semester) => (
-                      <div key={semester.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-medium">{semester.name}</h3>
-                          <Badge variant="outline">Semester {semester.number}</Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingSemester(semester);
-                              setSemesterForm({
-                                number: semester.number,
-                                name: semester.name
-                              });
-                              setShowSemesterDialog(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteSemester(semester.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                      <TableRow key={semester.id}>
+                        <TableCell>
+                          <Badge variant="outline">{semester.number}</Badge>
+                        </TableCell>
+                        <TableCell>{semester.name}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditSemester(semester)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteSemester(semester.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Branches Tab */}
-            <TabsContent value="branches">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    Branches
-                  </CardTitle>
-                  <Dialog open={showBranchDialog} onOpenChange={setShowBranchDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setEditingBranch(null);
-                          setBranchForm({ code: '', name: '', description: '' });
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Branch
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingBranch ? 'Edit Branch' : 'Add New Branch'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="branch-code">Code</Label>
-                          <Input
-                            id="branch-code"
-                            value={branchForm.code}
-                            onChange={(e) => setBranchForm({ ...branchForm, code: e.target.value })}
-                            placeholder="e.g., CME"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="branch-name">Name</Label>
-                          <Input
-                            id="branch-name"
-                            value={branchForm.name}
-                            onChange={(e) => setBranchForm({ ...branchForm, name: e.target.value })}
-                            placeholder="e.g., Computer Engineering"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="branch-desc">Description</Label>
-                          <Textarea
-                            id="branch-desc"
-                            value={branchForm.description}
-                            onChange={(e) => setBranchForm({ ...branchForm, description: e.target.value })}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <Button onClick={handleSaveBranch} className="w-full">
-                          {editingBranch ? 'Update' : 'Create'} Branch
-                        </Button>
+          {/* Branches Tab */}
+          <TabsContent value="branches" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  Branches Management
+                </CardTitle>
+                <Dialog open={showDialog && activeTab === "branches"} onOpenChange={setShowDialog}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetForms(); setShowDialog(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Branch
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingItem ? "Edit Branch" : "Add New Branch"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleBranchSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="code">Code</Label>
+                        <Input
+                          id="code"
+                          value={branchForm.code}
+                          onChange={(e) => setBranchForm({...branchForm, code: e.target.value})}
+                          placeholder="e.g., CME, ECE"
+                          required
+                        />
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          value={branchForm.name}
+                          onChange={(e) => setBranchForm({...branchForm, name: e.target.value})}
+                          placeholder="e.g., Computer Engineering"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={branchForm.description}
+                          onChange={(e) => setBranchForm({...branchForm, description: e.target.value})}
+                          placeholder="Optional description"
+                        />
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? "Saving..." : editingItem ? "Update" : "Create"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {branches.map((branch) => (
-                      <div key={branch.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-medium">{branch.code} - {branch.name}</h3>
-                          {branch.description && (
-                            <p className="text-sm text-muted-foreground">{branch.description}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingBranch(branch);
-                              setBranchForm({
-                                code: branch.code,
-                                name: branch.name,
-                                description: branch.description || ''
-                              });
-                              setShowBranchDialog(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteBranch(branch.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                      <TableRow key={branch.id}>
+                        <TableCell>
+                          <Badge variant="outline">{branch.code}</Badge>
+                        </TableCell>
+                        <TableCell>{branch.name}</TableCell>
+                        <TableCell>{branch.description || "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditBranch(branch)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteBranch(branch.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Subjects Tab */}
-            <TabsContent value="subjects">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-                    Subjects
-                  </CardTitle>
-                  <Dialog open={showSubjectDialog} onOpenChange={setShowSubjectDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setEditingSubject(null);
-                          setSubjectForm({ 
-                            code: '', 
-                            name: '', 
-                            description: '', 
-                            regulation_id: '', 
-                            semester_id: '', 
-                            branch_id: '' 
-                          });
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Subject
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingSubject ? 'Edit Subject' : 'Add New Subject'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="subject-code">Code</Label>
-                            <Input
-                              id="subject-code"
-                              value={subjectForm.code}
-                              onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value })}
-                              placeholder="e.g., CS101"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="subject-name">Name</Label>
-                            <Input
-                              id="subject-name"
-                              value={subjectForm.name}
-                              onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
-                              placeholder="e.g., Programming Fundamentals"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <Label htmlFor="subject-regulation">Regulation</Label>
-                            <Select 
-                              value={subjectForm.regulation_id} 
-                              onValueChange={(value) => setSubjectForm({ ...subjectForm, regulation_id: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select regulation" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {regulations.map((reg) => (
-                                  <SelectItem key={reg.id} value={reg.id}>
-                                    {reg.code} - {reg.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="subject-semester">Semester</Label>
-                            <Select 
-                              value={subjectForm.semester_id} 
-                              onValueChange={(value) => setSubjectForm({ ...subjectForm, semester_id: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select semester" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {semesters.map((sem) => (
-                                  <SelectItem key={sem.id} value={sem.id}>
-                                    {sem.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="subject-branch">Branch</Label>
-                            <Select 
-                              value={subjectForm.branch_id} 
-                              onValueChange={(value) => setSubjectForm({ ...subjectForm, branch_id: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select branch" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {branches.map((branch) => (
-                                  <SelectItem key={branch.id} value={branch.id}>
-                                    {branch.code} - {branch.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
+          {/* Subjects Tab */}
+          <TabsContent value="subjects" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  Subjects Management
+                </CardTitle>
+                <Dialog open={showDialog && activeTab === "subjects"} onOpenChange={setShowDialog}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetForms(); setShowDialog(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Subject
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingItem ? "Edit Subject" : "Add New Subject"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubjectSubmit} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="subject-desc">Description</Label>
-                          <Textarea
-                            id="subject-desc"
-                            value={subjectForm.description}
-                            onChange={(e) => setSubjectForm({ ...subjectForm, description: e.target.value })}
-                            placeholder="Optional description"
-                          />
-                        </div>
-                        <Button onClick={handleSaveSubject} className="w-full">
-                          {editingSubject ? 'Update' : 'Create'} Subject
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {subjects.map((subject) => (
-                      <div key={subject.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-medium">{subject.code} - {subject.name}</h3>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline">{subject.regulations?.code}</Badge>
-                            <Badge variant="outline">{subject.semesters?.name}</Badge>
-                            <Badge variant="outline">{subject.branches?.code}</Badge>
-                          </div>
-                          {subject.description && (
-                            <p className="text-sm text-muted-foreground mt-1">{subject.description}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingSubject(subject);
-                              setSubjectForm({
-                                code: subject.code,
-                                name: subject.name,
-                                description: subject.description || '',
-                                regulation_id: subject.regulation_id,
-                                semester_id: subject.semester_id,
-                                branch_id: subject.branch_id
-                              });
-                              setShowSubjectDialog(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteSubject(subject.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Question Papers Tab */}
-            <TabsContent value="papers">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Upload className="h-5 w-5" />
-                    Question Papers
-                  </CardTitle>
-                  <Dialog open={showQuestionPaperDialog} onOpenChange={setShowQuestionPaperDialog}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setEditingQuestionPaper(null);
-                          setQuestionPaperForm({
-                            title: '',
-                            year: new Date().getFullYear(),
-                            month: '',
-                            exam_type: '',
-                            subject_id: '',
-                            file: null
-                          });
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Question Paper
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {editingQuestionPaper ? 'Edit Question Paper' : 'Add New Question Paper'}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="paper-title">Title</Label>
+                          <Label htmlFor="code">Subject Code</Label>
                           <Input
-                            id="paper-title"
-                            value={questionPaperForm.title}
-                            onChange={(e) => setQuestionPaperForm({ ...questionPaperForm, title: e.target.value })}
-                            placeholder="e.g., Mid-term Examination"
+                            id="code"
+                            value={subjectForm.code}
+                            onChange={(e) => setSubjectForm({...subjectForm, code: e.target.value})}
+                            placeholder="e.g., CM101"
+                            required
                           />
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <Label htmlFor="paper-year">Year</Label>
-                            <Input
-                              id="paper-year"
-                              type="number"
-                              value={questionPaperForm.year}
-                              onChange={(e) => setQuestionPaperForm({ ...questionPaperForm, year: parseInt(e.target.value) || new Date().getFullYear() })}
-                              placeholder="2024"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="paper-month">Month</Label>
-                            <Select 
-                              value={questionPaperForm.month} 
-                              onValueChange={(value) => setQuestionPaperForm({ ...questionPaperForm, month: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select month" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="January">January</SelectItem>
-                                <SelectItem value="February">February</SelectItem>
-                                <SelectItem value="March">March</SelectItem>
-                                <SelectItem value="April">April</SelectItem>
-                                <SelectItem value="May">May</SelectItem>
-                                <SelectItem value="June">June</SelectItem>
-                                <SelectItem value="July">July</SelectItem>
-                                <SelectItem value="August">August</SelectItem>
-                                <SelectItem value="September">September</SelectItem>
-                                <SelectItem value="October">October</SelectItem>
-                                <SelectItem value="November">November</SelectItem>
-                                <SelectItem value="December">December</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="paper-exam-type">Exam Type</Label>
-                            <Select 
-                              value={questionPaperForm.exam_type} 
-                              onValueChange={(value) => setQuestionPaperForm({ ...questionPaperForm, exam_type: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Mid-term">Mid-term</SelectItem>
-                                <SelectItem value="End-term">End-term</SelectItem>
-                                <SelectItem value="Supplementary">Supplementary</SelectItem>
-                                <SelectItem value="Regular">Regular</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
                         <div>
-                          <Label htmlFor="paper-subject">Subject</Label>
-                          <Select 
-                            value={questionPaperForm.subject_id} 
-                            onValueChange={(value) => setQuestionPaperForm({ ...questionPaperForm, subject_id: value })}
+                          <Label htmlFor="name">Subject Name</Label>
+                          <Input
+                            id="name"
+                            value={subjectForm.name}
+                            onChange={(e) => setSubjectForm({...subjectForm, name: e.target.value})}
+                            placeholder="e.g., Programming in C"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="regulation">Regulation</Label>
+                          <Select
+                            value={subjectForm.regulation_id}
+                            onValueChange={(value) => setSubjectForm({...subjectForm, regulation_id: value})}
                           >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select subject" />
+                              <SelectValue placeholder="Select regulation" />
                             </SelectTrigger>
                             <SelectContent>
-                              {subjects.map((subject) => (
-                                <SelectItem key={subject.id} value={subject.id}>
-                                  {subject.code} - {subject.name} ({subject.regulations?.code}, {subject.semesters?.name}, {subject.branches?.code})
+                              {regulations.map((reg) => (
+                                <SelectItem key={reg.id} value={reg.id}>
+                                  {reg.code} - {reg.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="paper-file">PDF File</Label>
-                          <Input
-                            id="paper-file"
-                            type="file"
-                            accept=".pdf"
-                            onChange={(e) => setQuestionPaperForm({ ...questionPaperForm, file: e.target.files?.[0] || null })}
-                          />
+                          <Label htmlFor="semester">Semester</Label>
+                          <Select
+                            value={subjectForm.semester_id}
+                            onValueChange={(value) => setSubjectForm({...subjectForm, semester_id: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select semester" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {semesters.map((sem) => (
+                                <SelectItem key={sem.id} value={sem.id}>
+                                  {sem.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <Button 
-                          onClick={handleSaveQuestionPaper} 
-                          className="w-full"
-                          disabled={uploading}
-                        >
-                          {uploading ? 'Uploading...' : editingQuestionPaper ? 'Update' : 'Create'} Question Paper
-                        </Button>
+                        <div>
+                          <Label htmlFor="branch">Branch</Label>
+                          <Select
+                            value={subjectForm.branch_id}
+                            onValueChange={(value) => setSubjectForm({...subjectForm, branch_id: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select branch" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {branches.map((branch) => (
+                                <SelectItem key={branch.id} value={branch.id}>
+                                  {branch.code} - {branch.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {questionPapers.map((paper) => (
-                      <div key={paper.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <h3 className="font-medium">{paper.title}</h3>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="outline">{paper.year}</Badge>
-                            <Badge variant="outline">{paper.month}</Badge>
-                            <Badge variant="outline">{paper.exam_type}</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {paper.subjects?.code} - {paper.subjects?.name}
-                          </p>
-                          {paper.file_size && (
-                            <p className="text-xs text-muted-foreground">
-                              File size: {formatFileSize(paper.file_size)}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {paper.file_url && (
+                      <div>
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={subjectForm.description}
+                          onChange={(e) => setSubjectForm({...subjectForm, description: e.target.value})}
+                          placeholder="Optional description"
+                        />
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? "Saving..." : editingItem ? "Update" : "Create"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Regulation</TableHead>
+                      <TableHead>Semester</TableHead>
+                      <TableHead>Branch</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {subjects.map((subject) => (
+                      <TableRow key={subject.id}>
+                        <TableCell>
+                          <Badge variant="outline">{subject.code}</Badge>
+                        </TableCell>
+                        <TableCell>{subject.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {subject.regulations?.code}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{subject.semesters?.name}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">
+                            {subject.branches?.code}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => window.open(paper.file_url, '_blank')}
+                              onClick={() => handleEditSubject(subject)}
                             >
-                              <Download className="h-4 w-4" />
+                              <Edit className="h-4 w-4" />
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setEditingQuestionPaper(paper);
-                              setQuestionPaperForm({
-                                title: paper.title,
-                                year: paper.year || new Date().getFullYear(),
-                                month: paper.month || '',
-                                exam_type: paper.exam_type || '',
-                                subject_id: paper.subject_id,
-                                file: null
-                              });
-                              setShowQuestionPaperDialog(true);
-                            }}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteSubject(subject.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Question Papers Tab */}
+          <TabsContent value="papers" className="space-y-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Question Papers Management
+                </CardTitle>
+                <Dialog open={showDialog && activeTab === "papers"} onOpenChange={setShowDialog}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => { resetForms(); setShowDialog(true); }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Question Paper
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {editingItem ? "Edit Question Paper" : "Add New Question Paper"}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handlePaperSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="title">Title</Label>
+                        <Input
+                          id="title"
+                          value={paperForm.title}
+                          onChange={(e) => setPaperForm({...paperForm, title: e.target.value})}
+                          placeholder="e.g., Programming in C - Mid Term Exam"
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="year">Year</Label>
+                          <Input
+                            id="year"
+                            type="number"
+                            value={paperForm.year}
+                            onChange={(e) => setPaperForm({...paperForm, year: e.target.value})}
+                            placeholder="2024"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="month">Month</Label>
+                          <Select
+                            value={paperForm.month}
+                            onValueChange={(value) => setPaperForm({...paperForm, month: value})}
                           >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteQuestionPaper(paper.id)}
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="January">January</SelectItem>
+                              <SelectItem value="February">February</SelectItem>
+                              <SelectItem value="March">March</SelectItem>
+                              <SelectItem value="April">April</SelectItem>
+                              <SelectItem value="May">May</SelectItem>
+                              <SelectItem value="June">June</SelectItem>
+                              <SelectItem value="July">July</SelectItem>
+                              <SelectItem value="August">August</SelectItem>
+                              <SelectItem value="September">September</SelectItem>
+                              <SelectItem value="October">October</SelectItem>
+                              <SelectItem value="November">November</SelectItem>
+                              <SelectItem value="December">December</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="exam_type">Exam Type</Label>
+                          <Select
+                            value={paperForm.exam_type}
+                            onValueChange={(value) => setPaperForm({...paperForm, exam_type: value})}
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Mid-term">Mid-term</SelectItem>
+                              <SelectItem value="End-term">End-term</SelectItem>
+                              <SelectItem value="Supplementary">Supplementary</SelectItem>
+                              <SelectItem value="Regular">Regular</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
+                      <div>
+                        <Label htmlFor="subject">Subject</Label>
+                        <Select
+                          value={paperForm.subject_id}
+                          onValueChange={(value) => setPaperForm({...paperForm, subject_id: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select subject" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {subjects.map((subject) => (
+                              <SelectItem key={subject.id} value={subject.id}>
+                                {subject.code} - {subject.name} ({subject.regulations?.code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="file">Question Paper File (PDF)</Label>
+                        <Input
+                          id="file"
+                          type="file"
+                          accept=".pdf"
+                          onChange={(e) => setPaperForm({...paperForm, file: e.target.files?.[0] || null})}
+                          className="cursor-pointer"
+                        />
+                        {editingItem && !paperForm.file && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Leave empty to keep existing file
+                          </p>
+                        )}
+                      </div>
+                      <Button type="submit" disabled={loading} className="w-full">
+                        {loading ? "Saving..." : editingItem ? "Update" : "Create"}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Year/Month</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>File</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {questionPapers.map((paper) => (
+                      <TableRow key={paper.id}>
+                        <TableCell>{paper.title}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {paper.subjects?.code} - {paper.subjects?.name}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {paper.subjects?.regulations?.code} | {paper.subjects?.semesters?.name} | {paper.subjects?.branches?.code}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {paper.month} {paper.year}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{paper.exam_type}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {paper.file_url ? (
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                                <span className="text-sm">Uploaded</span>
+                              </div>
+                              {paper.file_size && (
+                                <div className="text-xs text-muted-foreground">
+                                  {formatFileSize(paper.file_size)}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <AlertCircle className="h-4 w-4 text-yellow-500" />
+                              <span className="text-sm">No file</span>
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {paper.file_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(paper.file_url, '_blank')}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditPaper(paper)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeletePaper(paper.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
