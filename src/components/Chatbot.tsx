@@ -22,7 +22,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! I'm PolyPros, your study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
+      text: "Hey! 😊 I'm PolyPros AI, your friendly study buddy for polytechnic subjects. I can help you with Engineering Math, Computer Science, Electronics, Mechanical, Civil, and more!\n\nWhat would you like to learn today?",
       isBot: true,
       timestamp: new Date(),
     },
@@ -159,7 +159,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     setMessages([
       {
         id: 1,
-        text: "Hello! I'm PolyPros, your study assistant for polytechnic subjects. I can help you with Engineering Mathematics, Computer Science, Electronics, Mechanical Engineering, Civil Engineering, and more! What would you like to learn about today?",
+        text: "Hey! 😊 I'm PolyPros AI, your friendly study buddy for polytechnic subjects. I can help you with Engineering Math, Computer Science, Electronics, Mechanical, Civil, and more!\n\nWhat would you like to learn today?",
         isBot: true,
         timestamp: new Date(),
       },
