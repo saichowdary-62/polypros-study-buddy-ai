@@ -59,7 +59,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2 animate-fade-in">
-              <img src="/polylogo.jpg" alt="PolyPros Logo" className="h-8 w-8 object-contain rounded" />
+              <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-8 w-8 object-contain" />
               <span className="text-xl sm:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
             </div>
             
@@ -301,8 +301,8 @@ const Index = () => {
             {/* Brand Section */}
             <div className="text-center md:text-left animate-fade-in">
               <div className="flex items-center justify-center md:justify-start space-x-3 mb-4">
-                <div className="bg-white p-2 rounded-xl animate-float">
-                  <img src="/polylogo.jpg" alt="PolyPros Logo" className="h-8 w-8 object-contain" />
+                <div className="bg-white p-2 rounded-xl">
+                  <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-8 w-8 object-contain" />
                 </div>
                 <span className="text-2xl sm:text-3xl font-bold">PolyPros</span>
               </div>
