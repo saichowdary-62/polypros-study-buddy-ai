@@ -60,7 +60,7 @@ const Index = () => {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2 animate-fade-in">
               <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-12 w-12 object-contain" />
-              <span className="text-xl sm:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">PolyPros</span>
+              <span className="text-xl sm:text-2xl font-bold text-blue-900 hover:text-blue-700 transition-colors duration-300">POLYPROS</span>
             </div>
             
             {/* Desktop Navigation */}
@@ -147,7 +147,7 @@ const Index = () => {
               </div>
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-blue-900 mb-6 animate-slide-up">
-              PolyPros Study Assistant
+              POLYPROS Study Assistant
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto animate-fade-in-delayed opacity-0 px-4" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
               Your AI-powered companion for SBTET AP polytechnic success. Get instant answers, study materials, and exam preparation help 24/7
@@ -181,7 +181,7 @@ const Index = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 mb-4 animate-fade-in">Why Choose PolyPros?</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 mb-4 animate-fade-in">Why Choose POLYPROS?</h2>
             <p className="text-gray-600 max-w-2xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
               Everything you need to excel in your polytechnic studies
             </p>
@@ -301,10 +301,8 @@ const Index = () => {
             {/* Brand Section */}
             <div className="text-center md:text-left animate-fade-in">
               <div className="flex items-center justify-center md:justify-start space-x-3 mb-4">
-                <div className="bg-white p-2 rounded-xl">
-                  <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-12 w-12 object-contain" />
-                </div>
-                <span className="text-2xl sm:text-3xl font-bold">PolyPros</span>
+                <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-12 w-12 object-contain" />
+                <span className="text-2xl sm:text-3xl font-bold">POLYPROS</span>
               </div>
               <p className="text-blue-200 mb-4 leading-relaxed">
                 Your trusted AI-powered study companion for SBTET AP polytechnic success. Learn smarter, not harder.
@@ -368,7 +366,7 @@ const Index = () => {
           <div className="border-t border-blue-700/50 pt-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <p className="text-blue-300 text-sm text-center md:text-left">
-                © 2025 PolyPros. All rights reserved.
+                © 2025 POLYPROS. All rights reserved.
               </p>
               <div className="flex items-center space-x-2 text-sm text-blue-300">
                 <span>Built with</span>
