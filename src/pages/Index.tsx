@@ -29,11 +29,11 @@ const Index = () => {
 
   const handleChatbotClick = () => {
     setIsLoadingChatbot(true);
-    // Show loading for 2 seconds then show chatbot
+    // Show simple loading then chatbot
     setTimeout(() => {
       setIsLoadingChatbot(false);
       setShowChatbot(true);
-    }, 2000);
+    }, 800);
   };
 
   const toggleMobileMenu = () => {
@@ -222,36 +222,17 @@ const Index = () => {
         </div>
       </footer>
 
-      {/* Chatbot Loading */}
+      {/* Simple Page Loader */}
       {isLoadingChatbot && (
-        <div className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center animate-fade-in">
-          <div className="text-center">
-            {/* Cooking Animation */}
-            <div className="relative mb-8">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center animate-pulse">
-                <Bot className="h-10 w-10 text-white" />
-              </div>
-              {/* Steam/Cooking Effects */}
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-400 rounded-full opacity-70 animate-bounce"></div>
-              <div className="absolute -top-4 right-2 w-4 h-4 bg-purple-400 rounded-full opacity-50 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="absolute -top-6 right-6 w-3 h-3 bg-blue-300 rounded-full opacity-40 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+        <div className="fixed inset-0 bg-white z-50 flex items-center justify-center animate-fade-in">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center animate-pulse mx-auto">
+              <Bot className="h-8 w-8 text-white" />
             </div>
-            
-            {/* Loading Text */}
-            <div className="space-y-2">
-              <h2 className="text-xl sm:text-2xl font-bold text-blue-900 animate-pulse">
-                🍳 PolyPros is cooking up answers...
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                Preparing your study assistant
-              </p>
-            </div>
-            
-            {/* Loading Dots */}
-            <div className="flex space-x-2 mt-6 justify-center">
-              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce"></div>
-              <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="flex space-x-2 justify-center">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
           </div>
         </div>
