@@ -185,29 +185,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Support Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-blue-50">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 animate-fade-in">
-            <h3 className="text-xl sm:text-2xl font-bold text-blue-900 mb-4">
-              💝 Support PolyPros Development
-            </h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-6">
-              Help us keep PolyPros free and accessible for all SBTET AP students
-            </p>
-            <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-6">
-              <p className="text-blue-700 font-semibold text-sm sm:text-base">
-                Donate via UPI: <span className="font-mono text-sm sm:text-lg break-all">918688673113@upi</span>
-              </p>
-            </div>
-            <p className="text-sm text-gray-500">
-              Your support helps us maintain and improve the platform
-            </p>
-          </div>
-        </div>
-      </section>
-
-
       {/* Footer */}
       <footer className="bg-blue-900 text-white py-12 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-7xl mx-auto">
