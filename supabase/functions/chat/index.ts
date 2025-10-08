@@ -22,13 +22,13 @@ serve(async (req) => {
       throw new Error('Message is required')
     }
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
-    console.log('Gemini API key exists:', !!geminiApiKey)
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')
+    console.log('Lovable API key exists:', !!lovableApiKey)
     
-    if (!geminiApiKey) {
+    if (!lovableApiKey) {
       return new Response(
         JSON.stringify({ 
-          error: 'Gemini API key not configured. Please add your GEMINI_API_KEY in the Supabase dashboard.' 
+          error: 'AI service not configured. Please contact support.' 
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -37,24 +37,11 @@ serve(async (req) => {
       )
     }
 
-    console.log('Making request to Gemini...')
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          ...conversationHistory.slice(-10).map(msg => ({
-            parts: [{ text: msg.isBot ? msg.text : msg.text }],
-            role: msg.isBot ? 'model' : 'user'
-          })),
-          {
-            parts: [
-              {
-                text: `You are PolyPros, a helpful study assistant that provides direct answers to any question asked.
-
-CONTEXT: You have access to the conversation history. Use it to understand what the user is referring to when they say things like "give me answers", "for 8 marks", "explain this", etc.
+    // Build messages array with system prompt and conversation history
+    const messages = [
+      {
+        role: 'system',
+        content: `You are PolyPros, a helpful study assistant that provides direct answers to any question asked.
 
 CREATOR INFORMATION: If anyone asks who created this AI or about the creator, respond that this AI was created by Sai Amarnadh, the founder of Ropebit Labs.
 
@@ -67,68 +54,60 @@ GUIDELINES:
 - For mathematics, provide formulas and explanations
 - Use bullet points for lists to keep organized
 - Be concise but comprehensive in your responses
-- If you need to clarify something, do so while still providing a helpful answer
+- If you need to clarify something, do so while still providing a helpful answer`
+      },
+      ...conversationHistory.slice(-10).map(msg => ({
+        role: msg.isBot ? 'assistant' : 'user',
+        content: msg.text
+      })),
+      {
+        role: 'user',
+        content: message
+      }
+    ]
 
-Current user question: ${message}`
-              }
-            ],
-            role: 'user'
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 1,
-          topP: 1,
-          maxOutputTokens: 800,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          }
-        ]
+    console.log('Making request to Lovable AI...')
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 800,
       }),
     })
 
-    console.log('Gemini response status:', response.status)
+    console.log('AI response status:', response.status)
 
     if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Gemini API Error:', errorData)
+      const errorData = await response.text()
+      console.error('Lovable AI Error:', response.status, errorData)
       
       let userFriendlyMessage = 'Sorry, I encountered an error. Please try again.'
       
       if (response.status === 429) {
         userFriendlyMessage = "I'm currently experiencing high demand. Please wait a moment and try again."
+      } else if (response.status === 402) {
+        userFriendlyMessage = "AI service credits depleted. Please contact support."
       } else if (response.status === 401) {
-        userFriendlyMessage = "There's an issue with the API configuration. Please contact support."
-      } else if (response.status === 400) {
-        userFriendlyMessage = "There was an issue with your request. Please try rephrasing your question."
+        userFriendlyMessage = "There's an issue with the AI configuration. Please contact support."
       }
       
       return new Response(
         JSON.stringify({ error: userFriendlyMessage }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200, // Return 200 so the frontend can handle the error gracefully
+          status: 200,
         },
       )
     }
 
     const data = await response.json()
-    const aiResponse = data.candidates[0].content.parts[0].text
+    const aiResponse = data.choices[0].message.content
     console.log('AI response generated successfully, length:', aiResponse.length)
 
     return new Response(
@@ -146,7 +125,7 @@ Current user question: ${message}`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200, // Return 200 so the frontend can handle the error gracefully
+        status: 200,
       },
     )
   }
