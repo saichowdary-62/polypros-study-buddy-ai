@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown, Chrome, X, Menu } from "lucide-react";
+import { MessageCircle, BookOpen, Clock, Users, Send, Bot, Mail, Phone, Instagram, ArrowDown, Chrome, X, Menu, GraduationCap, Zap, Shield, Star, TrendingUp, Award } from "lucide-react";
 import { Chatbot } from "@/components/Chatbot";
 import { FeatureCard } from "@/components/FeatureCard";
 import { Link } from "react-router-dom";
@@ -138,13 +138,21 @@ const Index = () => {
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 relative min-h-[70vh] flex items-center">
         <div className="max-w-7xl mx-auto w-full">
           <div className="text-center">
+            <div className="inline-block animate-float mb-6">
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-full px-6 py-2 border border-blue-200">
+                <span className="text-blue-700 font-semibold text-sm flex items-center gap-2">
+                  <Star className="h-4 w-4 fill-blue-600 text-blue-600" />
+                  Trusted by 1000+ Students
+                </span>
+              </div>
+            </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-blue-900 mb-6 animate-slide-up">
               PolyPros Study Assistant
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto animate-fade-in-delayed opacity-0 px-4" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
-              Get instant help with SBTET AP polytechnic subjects
+              Your AI-powered companion for SBTET AP polytechnic success. Get instant answers, study materials, and exam preparation help 24/7
             </p>
-            <div className="animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.5s', animationFillMode: 'forwards' }}>
               <Button
                 onClick={handleChatbotClick}
                 size="lg"
@@ -154,6 +162,16 @@ const Index = () => {
                 <MessageCircle className="mr-2 h-5 w-5" />
                 Start Chatting
               </Button>
+              <Link to="/question-papers">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="px-8 py-6 text-lg font-semibold rounded-full border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all duration-300 hover:scale-105 transform"
+                >
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  Browse Papers
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -161,25 +179,111 @@ const Index = () => {
 
       {/* Features Section */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 mb-4 animate-fade-in">Why Choose PolyPros?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+              Everything you need to excel in your polytechnic studies
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.1s' }}>
               <Link to="/question-papers" className="block">
-                <FeatureCard
-                  icon={<BookOpen className="h-8 w-8 text-blue-600" />}
-                  title="All Subjects"
-                  description="Previous question papers for all subjects"
-                  delay={0}
-                />
+                <Card className="hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:border-blue-300 border-2 group">
+                  <CardContent className="p-6">
+                    <div className="bg-blue-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <BookOpen className="h-7 w-7 text-blue-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Question Papers</h3>
+                    <p className="text-gray-600">Access previous year papers for all SBTET subjects</p>
+                  </CardContent>
+                </Card>
               </Link>
             </div>
             <div className="animate-slide-up-stagger" style={{ animationDelay: '0.2s' }}>
-              <FeatureCard
-                icon={<MessageCircle className="h-8 w-8 text-blue-600" />}
-                title="Instant Help"
-                description="Get answers and explanations instantly"
-                delay={100}
-              />
+              <Card className="hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:border-blue-300 border-2 group cursor-pointer" onClick={handleChatbotClick}>
+                <CardContent className="p-6">
+                  <div className="bg-purple-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <MessageCircle className="h-7 w-7 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Chat Assistant</h3>
+                  <p className="text-gray-600">Get instant answers to your study questions 24/7</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="animate-slide-up-stagger" style={{ animationDelay: '0.3s' }}>
+              <Card className="hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:border-blue-300 border-2 group">
+                <CardContent className="p-6">
+                  <div className="bg-green-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <Zap className="h-7 w-7 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Quick Solutions</h3>
+                  <p className="text-gray-600">Fast and accurate explanations for complex topics</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        </div>
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center animate-fade-in">
+              <div className="text-4xl sm:text-5xl font-bold text-white mb-2">1000+</div>
+              <div className="text-blue-100 text-sm sm:text-base">Active Students</div>
+            </div>
+            <div className="text-center animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="text-4xl sm:text-5xl font-bold text-white mb-2">50+</div>
+              <div className="text-blue-100 text-sm sm:text-base">Subjects Covered</div>
+            </div>
+            <div className="text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="text-4xl sm:text-5xl font-bold text-white mb-2">24/7</div>
+              <div className="text-blue-100 text-sm sm:text-base">Available Support</div>
+            </div>
+            <div className="text-center animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <div className="text-4xl sm:text-5xl font-bold text-white mb-2">100%</div>
+              <div className="text-blue-100 text-sm sm:text-base">Free Access</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold text-blue-900 mb-4 animate-fade-in">How It Works</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto animate-fade-in-delayed opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+              Get started in three simple steps
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center animate-slide-up-stagger" style={{ animationDelay: '0.1s' }}>
+              <div className="bg-blue-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 hover:scale-110 transition-transform duration-300">
+                1
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Ask Your Question</h3>
+              <p className="text-gray-600">Type any study question or topic you need help with</p>
+            </div>
+            <div className="text-center animate-slide-up-stagger" style={{ animationDelay: '0.2s' }}>
+              <div className="bg-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 hover:scale-110 transition-transform duration-300">
+                2
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">AI Processes</h3>
+              <p className="text-gray-600">Our AI analyzes and prepares detailed explanations</p>
+            </div>
+            <div className="text-center animate-slide-up-stagger" style={{ animationDelay: '0.3s' }}>
+              <div className="bg-green-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4 hover:scale-110 transition-transform duration-300">
+                3
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Get Instant Help</h3>
+              <p className="text-gray-600">Receive clear answers and study guidance instantly</p>
             </div>
           </div>
         </div>
