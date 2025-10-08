@@ -142,12 +142,12 @@ const Index = () => {
               <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-full px-6 py-2 border border-blue-200">
                 <span className="text-blue-700 font-semibold text-sm flex items-center gap-2">
                   <Star className="h-4 w-4 fill-blue-600 text-blue-600" />
-                  Trusted by 1000+ Students
+                  Trusted by 100+ Students
                 </span>
               </div>
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-blue-900 mb-6 animate-slide-up">
-              POLYPROS Study Assistant
+              POLY PROS Study Assistant
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 mb-8 max-w-2xl mx-auto animate-fade-in-delayed opacity-0 px-4" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
               Your AI-powered companion for SBTET AP polytechnic success. Get instant answers, study materials, and exam preparation help 24/7
