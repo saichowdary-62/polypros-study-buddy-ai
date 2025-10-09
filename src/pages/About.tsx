@@ -1,29 +1,13 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Bot, Users, Heart, Award } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Users, Heart, Award } from "lucide-react";
+import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md shadow-sm fixed w-full top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-1">
-              <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-16 w-16 object-contain" />
-              <span className="text-xl sm:text-2xl font-bold text-blue-900">POLYPROS</span>
-            </div>
-            <div className="hidden sm:flex space-x-8">
-              <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">Home</Link>
-              <Link to="/about" className="text-blue-600 font-semibold">About</Link>
-            </div>
-            <div className="sm:hidden">
-              <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors text-sm">Home</Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
 
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
@@ -115,25 +99,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-blue-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Bot className="h-8 w-8 text-blue-400" />
-              <span className="text-xl sm:text-2xl font-bold">PolyPros</span>
-            </div>
-            <p className="text-sm sm:text-base text-blue-200 mb-4 px-4">
-              Your trusted AI study companion for polytechnic success
-            </p>
-            <div className="border-t border-blue-800 pt-8">
-              <p className="text-blue-300 text-xs sm:text-sm px-4">
-                © 2025 PolyPros | Created by Aditya Polytechnic College students with Ropebit Labs
-              </p>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

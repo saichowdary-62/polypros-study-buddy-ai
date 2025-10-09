@@ -77,11 +77,17 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         setIsListening(false);
 
         if (event.error === 'not-allowed') {
-          toast.error('Microphone access denied. Please enable microphone permissions.');
+          toast.error('Microphone access denied. Please enable microphone permissions.', {
+            position: 'top-center',
+          });
         } else if (event.error === 'no-speech') {
-          toast.error('No speech detected. Please try again.');
+          toast.error('No speech detected. Please try again.', {
+            position: 'top-center',
+          });
         } else {
-          toast.error(`Speech recognition error: ${event.error}`);
+          toast.error(`Speech recognition error: ${event.error}`, {
+            position: 'top-center',
+          });
         }
       };
 
@@ -99,7 +105,9 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
 
   const toggleVoiceInput = () => {
     if (!recognitionRef.current) {
-      toast.error('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      toast.error('Speech recognition is not supported in this browser. Please use Chrome or Edge.', {
+        position: 'top-center',
+      });
       return;
     }
 
@@ -108,10 +116,14 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     } else {
       try {
         recognitionRef.current.start();
-        toast.success('Listening... Speak now!');
+        toast.success('Listening... Speak now!', {
+          position: 'top-center',
+        });
       } catch (error) {
         console.error('Error starting speech recognition:', error);
-        toast.error('Failed to start voice input. Please try again.');
+        toast.error('Failed to start voice input. Please try again.', {
+          position: 'top-center',
+        });
       }
     }
   };

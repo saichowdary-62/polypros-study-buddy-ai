@@ -10,26 +10,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Upload, 
-  Download, 
-  FileText, 
-  BookOpen, 
-  GraduationCap, 
-  Building, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Upload,
+  Download,
+  FileText,
+  BookOpen,
+  GraduationCap,
+  Building,
   Calendar,
-  ArrowLeft,
   Lock,
   RefreshCw,
   AlertCircle,
   CheckCircle
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Navigation } from "@/components/Navigation";
+import { Footer } from "@/components/Footer";
 
 interface Regulation {
   id: string;
@@ -84,7 +84,6 @@ interface QuestionPaper {
 }
 
 const AdminPanel = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   
   // Authentication state
@@ -764,39 +763,23 @@ const AdminPanel = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Navigation */}
-      <nav className="bg-white/90 backdrop-blur-md shadow-lg border-b border-blue-100/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-1">
-              <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-16 w-16 object-contain" />
-              <span className="text-xl sm:text-2xl font-bold text-blue-900">POLYPROS Admin</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => loadAllData()}
-                disabled={loading}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </Button>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation />
+
+      <div className="fixed top-20 right-4 z-40 flex items-center space-x-2">
+        <Button
+          variant="outline"
+          onClick={() => loadAllData()}
+          disabled={loading}
+          className="flex items-center gap-2 bg-white shadow-lg"
+          size="sm"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">Refresh</span>
+        </Button>
+        <Button variant="outline" onClick={handleLogout} className="bg-white shadow-lg" size="sm">
+          Logout
+        </Button>
+      </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
@@ -1512,6 +1495,8 @@ const AdminPanel = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <Footer />
     </div>
   );
 };
