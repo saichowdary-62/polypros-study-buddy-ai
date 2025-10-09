@@ -176,34 +176,34 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       </div>
 
       {/* Header - optimized for mobile */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2.5 sm:p-4 flex items-center justify-between shadow-lg shrink-0 animate-slide-down">
-        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-          <div className="bg-white/20 p-1.5 sm:p-2 rounded-full animate-pulse">
-            <Bot className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" />
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 sm:p-4 flex items-center justify-between shadow-lg shrink-0 animate-slide-down">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <div className="bg-white/20 p-1.5 sm:p-2 rounded-full animate-pulse shrink-0">
+            <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-sm sm:text-lg font-bold truncate">PolyPros AI</h1>
-            <p className="text-[10px] sm:text-sm text-blue-100 truncate flex items-center gap-1">
-              <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-              Online & Ready
+          <div className="min-w-0 flex-1">
+            <h1 className="text-base sm:text-lg font-bold truncate">PolyPros AI</h1>
+            <p className="text-xs sm:text-sm text-blue-100 truncate flex items-center gap-1.5">
+              <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse shrink-0"></span>
+              <span className="truncate">Online & Ready</span>
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={clearChat}
-            className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full transition-all duration-300 hover:scale-110"
+            className="text-white hover:bg-white/20 h-9 w-9 sm:h-10 sm:w-10 p-0 rounded-full transition-all duration-300 hover:scale-110 shrink-0"
             title="Clear chat"
           >
-            <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <RefreshCw className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="text-white hover:bg-white/20 h-8 w-8 sm:h-9 sm:w-9 p-0 rounded-full transition-all duration-300 hover:scale-110"
+            className="text-white hover:bg-white/20 h-9 w-9 sm:h-10 sm:w-10 p-0 rounded-full transition-all duration-300 hover:scale-110 shrink-0"
           >
             <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
@@ -216,14 +216,14 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
           <div className="absolute top-20 right-10 w-32 h-32 bg-blue-200 rounded-full opacity-10 animate-pulse"></div>
           <div className="absolute bottom-40 left-10 w-40 h-40 bg-purple-200 rounded-full opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
         </div>
-        <ScrollArea className="flex-1 px-3 sm:px-4 py-3 sm:py-6 relative z-10">
-          <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+        <ScrollArea className="flex-1 px-3 sm:px-6 py-4 sm:py-6 relative z-10">
+          <div className="max-w-4xl mx-auto space-y-3 sm:space-y-5">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex w-full ${message.isBot ? "justify-start" : "justify-end"}`}
               >
-                <div className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${message.isBot ? "" : "flex-row-reverse space-x-reverse"}`}>
+                <div className={`flex items-start gap-2 sm:gap-3 max-w-[92%] sm:max-w-[85%] ${message.isBot ? "" : "flex-row-reverse"}`}>
                   <div className={`shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
                     message.isBot
                       ? message.isError
@@ -242,22 +242,22 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                     )}
                   </div>
                   
-                  <div className={`rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 transition-all duration-300 animate-fade-in hover:scale-[1.02] ${
+                  <div className={`rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 transition-all duration-300 animate-fade-in ${
                     message.isBot
                       ? message.isError
-                        ? "bg-red-50 text-red-800 border border-red-200 shadow-md"
-                        : "bg-white text-gray-800 shadow-md hover:shadow-xl border border-gray-100"
-                      : "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg hover:shadow-xl"
+                        ? "bg-red-50 text-red-800 border border-red-200 shadow-sm"
+                        : "bg-white text-gray-800 shadow-sm border border-gray-100"
+                      : "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                   }`}>
-                    <div className="text-[13px] sm:text-sm leading-relaxed whitespace-pre-wrap animate-scale-in break-words">
+                    <div className="text-sm sm:text-[15px] leading-relaxed whitespace-pre-wrap break-words">
                       {message.text}
                     </div>
-                    <div className={`text-[10px] sm:text-xs mt-1.5 sm:mt-2 ${
+                    <div className={`text-[11px] sm:text-xs mt-2 ${
                       message.isBot 
                         ? message.isError 
                           ? "text-red-500" 
-                          : "text-gray-500" 
-                        : "text-blue-200"
+                          : "text-gray-400" 
+                        : "text-blue-100"
                     }`}>
                       {message.timestamp.toLocaleTimeString([], { 
                         hour: '2-digit', 
@@ -271,12 +271,12 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
             
             {isTyping && (
               <div className="flex justify-start animate-fade-in">
-                <div className="flex items-start space-x-2 max-w-[90%] sm:max-w-[85%]">
-                  <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center animate-pulse shadow-md">
+                <div className="flex items-start gap-2 sm:gap-3 max-w-[92%] sm:max-w-[85%]">
+                  <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center animate-pulse shadow-sm">
                     <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
                   </div>
-                  <div className="rounded-2xl px-3 py-2 sm:px-4 sm:py-2.5 bg-white shadow-lg animate-scale-in border border-gray-100">
-                    <div className="flex space-x-1.5">
+                  <div className="rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 bg-white shadow-sm border border-gray-100">
+                    <div className="flex gap-1.5">
                       <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-bounce"></div>
                       <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }}></div>
                       <div className="w-2.5 h-2.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }}></div>
@@ -290,28 +290,28 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         </ScrollArea>
         
         {/* Input Area - mobile optimized */}
-        <div className="border-t border-gray-200 bg-white/90 backdrop-blur-md p-2.5 sm:p-4 shrink-0 safe-area-inset-bottom shadow-lg">
+        <div className="border-t border-gray-200 bg-white/95 backdrop-blur-md p-3 sm:p-4 shrink-0 safe-area-inset-bottom shadow-lg">
           <div className="max-w-4xl mx-auto">
-            <div className="flex space-x-2 mb-2">
+            <div className="flex gap-2 sm:gap-3 mb-2">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask about SBTET subjects..."
-                className="flex-1 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base h-11 sm:h-12 px-4 sm:px-5 shadow-sm transition-all duration-300 hover:shadow-md"
+                className="flex-1 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base h-12 sm:h-13 px-4 sm:px-5 shadow-sm transition-all duration-300"
                 disabled={isTyping}
               />
               <Button
                 onClick={() => handleSendMessage()}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full h-11 w-11 sm:h-12 sm:w-12 p-0 shrink-0 shadow-lg active:scale-95 transition-all duration-300 hover:scale-110 hover:shadow-xl"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full h-12 w-12 sm:h-13 sm:w-13 p-0 shrink-0 shadow-md active:scale-95 transition-all duration-200"
                 disabled={isTyping || !inputValue.trim()}
               >
-                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Send className="h-5 w-5 sm:h-5 sm:w-5" />
               </Button>
             </div>
-            <p className="text-[10px] sm:text-xs text-gray-500 text-center px-2 flex items-center justify-center gap-1">
-              <Bot className="h-3 w-3 text-blue-600" />
-              PolyPros AI Study Buddy • Made for SBTET AP students
+            <p className="text-[10px] sm:text-xs text-gray-500 text-center px-2 flex items-center justify-center gap-1.5 flex-wrap">
+              <Bot className="h-3 w-3 text-blue-600 shrink-0" />
+              <span className="truncate">PolyPros AI Study Buddy • Made for SBTET AP students</span>
             </p>
           </div>
         </div>

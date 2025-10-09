@@ -94,7 +94,7 @@ const WebsiteMonitor = () => {
       <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-1">
               <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-16 w-16 object-contain" />
               <span className="text-xl sm:text-2xl font-bold text-blue-900">POLYPROS</span>
             </div>
