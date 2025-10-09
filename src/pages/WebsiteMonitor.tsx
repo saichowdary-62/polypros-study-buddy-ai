@@ -89,28 +89,38 @@ const WebsiteMonitor = () => {
   const blacklistUsagePercentage = (monitorData.API_Blacklist_Check_Status.Spent_API_Checks_This_Month / monitorData.API_Blacklist_Check_Status.Monthly_API_Checks_From_Package) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Home
-          </Button>
-          
-          <div className="text-center space-y-2 flex-1">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Website Monitor
-            </h1>
-            <p className="text-muted-foreground">Real-time API monitoring and usage statistics</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80">
+      {/* Header Navigation */}
+      <nav className="bg-white/90 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-blue-100/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <img src="/polylogo-removebg-preview.png" alt="PolyPros Logo" className="h-16 w-16 object-contain" />
+              <span className="text-xl sm:text-2xl font-bold text-blue-900">POLYPROS</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Home
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
           </div>
-          
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
+        </div>
+      </nav>
+
+      <div className="max-w-6xl mx-auto space-y-6 pt-24 p-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            Website Monitor
+          </h1>
+          <p className="text-muted-foreground">Real-time API monitoring and usage statistics</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
