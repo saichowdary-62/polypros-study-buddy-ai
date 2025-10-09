@@ -29,19 +29,38 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const latestMessageRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const scrollToLatestMessage = () => {
+    latestMessageRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
+    if (isTyping || isThinking) {
+      scrollToBottom();
+    } else if (messages.length > 0) {
+      // Scroll to show the start of the latest bot message
+      setTimeout(() => scrollToLatestMessage(), 100);
+    }
+  }, [messages, isTyping, isThinking]);
 
   const handleSendMessage = async (retryMessage?: string) => {
     const messageToSend = retryMessage || inputValue.trim();
-    if (!messageToSend || isTyping) return;
+    if (!messageToSend || isTyping || isThinking) return;
+
+    // Check if question seems complex (longer questions get thinking animation)
+    const isComplexQuestion = messageToSend.length > 50 || 
+                              messageToSend.includes('explain') || 
+                              messageToSend.includes('how') ||
+                              messageToSend.includes('why') ||
+                              messageToSend.includes('difference') ||
+                              messageToSend.includes('compare');
 
     // Add user message only if not retrying
     if (!retryMessage) {
@@ -53,6 +72,13 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
       };
       setMessages(prev => [...prev, newMessage]);
       setInputValue("");
+    }
+
+    // Show thinking animation for complex questions
+    if (isComplexQuestion) {
+      setIsThinking(true);
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s thinking time
+      setIsThinking(false);
     }
 
     setIsTyping(true);
@@ -218,9 +244,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
         </div>
         <ScrollArea className="flex-1 px-3 sm:px-6 py-4 sm:py-6 relative z-10">
           <div className="max-w-4xl mx-auto space-y-3 sm:space-y-5">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
+                ref={index === messages.length - 1 ? latestMessageRef : null}
                 className={`flex w-full ${message.isBot ? "justify-start" : "justify-end"}`}
               >
                 <div className={`flex items-start gap-2 sm:gap-3 max-w-[92%] sm:max-w-[85%] ${message.isBot ? "" : "flex-row-reverse"}`}>
@@ -269,6 +296,26 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               </div>
             ))}
             
+            {isThinking && (
+              <div className="flex justify-start animate-fade-in">
+                <div className="flex items-start gap-2 sm:gap-3 max-w-[92%] sm:max-w-[85%]">
+                  <div className="shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center shadow-sm">
+                    <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 animate-pulse" />
+                  </div>
+                  <div className="rounded-2xl px-3.5 py-2.5 sm:px-4 sm:py-3 bg-white shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                      <span className="text-xs text-gray-500 italic">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {isTyping && (
               <div className="flex justify-start animate-fade-in">
                 <div className="flex items-start gap-2 sm:gap-3 max-w-[92%] sm:max-w-[85%]">
@@ -304,7 +351,7 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
               <Button
                 onClick={() => handleSendMessage()}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full h-12 w-12 sm:h-13 sm:w-13 p-0 shrink-0 shadow-md active:scale-95 transition-all duration-200"
-                disabled={isTyping || !inputValue.trim()}
+                disabled={isTyping || isThinking || !inputValue.trim()}
               >
                 <Send className="h-5 w-5 sm:h-5 sm:w-5" />
               </Button>
