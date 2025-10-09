@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Send, Bot, User, RefreshCw, AlertCircle } from "lucide-react";
+import { X, Send, Bot, User, RefreshCw, AlertCircle, Mic, MicOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -30,8 +30,10 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const latestMessageRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,10 +47,74 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
     if (isTyping || isThinking) {
       scrollToBottom();
     } else if (messages.length > 0) {
-      // Scroll to show the start of the latest bot message
       setTimeout(() => scrollToLatestMessage(), 100);
     }
   }, [messages, isTyping, isThinking]);
+
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+
+        setInputValue(transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+
+        if (event.error === 'not-allowed') {
+          toast.error('Microphone access denied. Please enable microphone permissions.');
+        } else if (event.error === 'no-speech') {
+          toast.error('No speech detected. Please try again.');
+        } else {
+          toast.error(`Speech recognition error: ${event.error}`);
+        }
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []);
+
+  const toggleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      toast.error('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      try {
+        recognitionRef.current.start();
+        toast.success('Listening... Speak now!');
+      } catch (error) {
+        console.error('Error starting speech recognition:', error);
+        toast.error('Failed to start voice input. Please try again.');
+      }
+    }
+  };
 
   const handleSendMessage = async (retryMessage?: string) => {
     const messageToSend = retryMessage || inputValue.trim();
@@ -344,10 +410,26 @@ export const Chatbot = ({ onClose }: ChatbotProps) => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about SBTET subjects..."
+                placeholder={isListening ? "Listening..." : "Ask about SBTET subjects or use voice..."}
                 className="flex-1 rounded-full border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-sm sm:text-base h-12 sm:h-13 px-4 sm:px-5 shadow-sm transition-all duration-300"
                 disabled={isTyping}
               />
+              <Button
+                onClick={toggleVoiceInput}
+                className={`rounded-full h-12 w-12 sm:h-13 sm:w-13 p-0 shrink-0 shadow-md active:scale-95 transition-all duration-200 ${
+                  isListening
+                    ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 animate-pulse'
+                    : 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                }`}
+                disabled={isTyping || isThinking}
+                title={isListening ? "Stop listening" : "Start voice input"}
+              >
+                {isListening ? (
+                  <MicOff className="h-5 w-5 sm:h-5 sm:w-5" />
+                ) : (
+                  <Mic className="h-5 w-5 sm:h-5 sm:w-5" />
+                )}
+              </Button>
               <Button
                 onClick={() => handleSendMessage()}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full h-12 w-12 sm:h-13 sm:w-13 p-0 shrink-0 shadow-md active:scale-95 transition-all duration-200"
