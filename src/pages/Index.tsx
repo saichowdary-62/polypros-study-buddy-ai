@@ -249,7 +249,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center animate-fade-in">
-              <div className="text-4xl sm:text-5xl font-bold text-white mb-2">1000+</div>
+              <div className="text-4xl sm:text-5xl font-bold text-white mb-2">100+</div>
               <div className="text-blue-100 text-sm sm:text-base">Active Students</div>
             </div>
             <div className="text-center animate-fade-in" style={{ animationDelay: '0.1s' }}>
